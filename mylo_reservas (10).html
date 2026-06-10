@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mylo — Reservas</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500&display=swap');
+
+  :root {
+    --black:  #0d0d0d;
+    --dark:   #161616;
+    --card:   #1e1e1e;
+    --border: #2a2a2a;
+    --orange: #E8621A;
+    --teal:   #1B4D47;
+    --cream:  #F2E8D5;
+    --muted:  #666;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { overflow-x: hidden; max-width: 100vw; }
+  html, body { height: 100%; }
+  body { background: var(--black); color: var(--cream); font-family: 'Barlow', sans-serif; font-size: 15px; overflow-x: hidden; max-width: 100vw; }
+
+  /* ── HEADER ── */
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--black);
+    position: sticky; top: 0; z-index: 10;
+  }
+  .brand-name { font-family: 'Barlow Condensed', sans-serif; font-size: 32px; font-weight: 800; text-transform: uppercase; color: var(--orange); line-height: 1; }
+  .brand-sub  { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-top: 1px; }
+
+  .btn-add {
+    background: var(--orange); color: #fff; border: none;
+    width: 44px; height: 44px; font-size: 26px; font-weight: 300;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0;
+  }
+  .btn-csv {
+    background: transparent; color: var(--cream); border: 1px solid var(--border);
+    width: 44px; height: 44px; font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px; font-weight: 700; letter-spacing: 0.05em;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0;
+  }
+  .btn-export { display: none; }
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+
+  /* ── SYNC BAR ── */
+  .sync-bar {
+    display: flex; align-items: center; gap: 7px;
+    padding: 6px 16px; background: #111;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
+  }
+  .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: #444; flex-shrink: 0; }
+  .sync-dot.ok      { background: #2e7d5e; }
+  .sync-dot.loading { background: var(--orange); animation: pulse 1s infinite; }
+  .sync-dot.error   { background: #c0392b; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  /* ── STATS ── */
+  .stats-bar { display: grid; grid-template-columns: repeat(4,1fr); border-bottom: 1px solid var(--border); }
+  .stat { padding: 10px 8px; border-right: 1px solid var(--border); text-align: center; }
+  .stat:last-child { border-right: none; }
+  .stat-num   { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 800; color: var(--orange); line-height: 1; }
+  .stat-label { font-size: 9px; font-weight: 500; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 2px; }
+
+  /* ── MONTH NAV ── */
+  .month-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px 8px;
+  }
+  .month-title { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 800; text-transform: uppercase; }
+  .month-title em { color: var(--orange); font-style: normal; }
+  .nav-btn {
+    background: transparent; border: 1px solid var(--border); color: var(--cream);
+    width: 36px; height: 36px; font-size: 18px; cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ── CALENDAR ── */
+  .cal-wrap { padding: 0 8px 8px; overflow: hidden; }
+  .cal-grid  { display: grid; grid-template-columns: repeat(7,1fr); gap: 1px; width: 100%; }
+  .cal-dow   { text-align: center; padding: 6px 2px; font-family: 'Barlow Condensed', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+
+  .cal-day {
+    background: var(--card);
+    min-height: 56px;
+    padding: 5px 3px 4px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .cal-day.empty   { background: #111; cursor: default; }
+  .cal-day.today   { border-top: 2px solid var(--orange); }
+  .cal-day.selected { outline: 2px solid var(--orange); background: #1c1308; }
+
+  .day-num { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 700; color: var(--cream); line-height: 1; margin-bottom: 4px; }
+  .cal-day.today .day-num { color: var(--orange); }
+  .cal-day.empty  .day-num { color: #333; }
+
+  .res-dots { display: flex; flex-direction: column; gap: 2px; }
+  .res-chip {
+    font-family: 'Barlow Condensed', sans-serif; font-size: 9px; font-weight: 700;
+    padding: 1px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .res-chip.confirmed { background: var(--teal); color: #a8d5c8; }
+  .res-chip.pending   { background: #3d2a0a; color: #f0b860; }
+  .res-chip.cancelled { background: #2a2a2a; color: #555; }
+  .more-chip { font-size: 9px; color: var(--muted); font-family: 'Barlow Condensed', sans-serif; padding: 1px 3px; }
+
+  /* ── DAY DETAIL (slide-up panel) ── */
+  .detail-backdrop {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 20;
+  }
+  .detail-backdrop.open { display: block; }
+
+  .detail-sheet {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 30;
+    background: var(--dark); border-top: 2px solid var(--orange);
+    max-height: 75vh; display: flex; flex-direction: column;
+    transform: translateY(100%); transition: transform 0.3s ease;
+  }
+  .detail-sheet.open { transform: translateY(0); }
+
+  .sheet-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 10px auto 0; flex-shrink: 0; }
+
+  .detail-header { padding: 12px 16px 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; }
+  .detail-date  { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 800; text-transform: uppercase; }
+  .detail-date em { color: var(--orange); font-style: normal; }
+  .detail-count { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500; margin-top: 2px; }
+  .sheet-close  { background: none; border: none; color: var(--muted); font-size: 24px; cursor: pointer; padding: 4px; line-height: 1; }
+
+
+  .detail-body  { overflow-y: auto; padding: 12px 16px 24px; flex: 1; }
+
+  .res-card { border: 1px solid var(--border); margin-bottom: 10px; padding: 13px; cursor: pointer; }
+  .res-card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; gap: 8px; }
+  .res-name { font-family: 'Barlow Condensed', sans-serif; font-size: 17px; font-weight: 700; text-transform: uppercase; color: var(--cream); line-height: 1.1; }
+  .status-badge { font-family: 'Barlow Condensed', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 7px; white-space: nowrap; }
+  .status-badge.confirmed { background: var(--teal); color: #a8d5c8; }
+  .status-badge.pending   { background: #3d2a0a; color: #f0b860; }
+  .status-badge.cancelled { background: #2a2a2a; color: #555; }
+  .res-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 10px; }
+  .meta-item { display: flex; flex-direction: column; gap: 1px; }
+  .meta-label { font-size: 9px; font-weight: 600; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; font-family: 'Barlow Condensed', sans-serif; }
+  .meta-value { font-size: 13px; color: var(--cream); }
+  .res-notes  { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); font-size: 12px; color: #999; line-height: 1.5; }
+
+  .empty-day { text-align: center; padding: 40px 20px; }
+  .empty-icon { font-family: 'Barlow Condensed', sans-serif; font-size: 40px; font-weight: 800; color: #2a2a2a; }
+  .empty-day p { font-size: 11px; margin-top: 8px; color: #444; text-transform: uppercase; letter-spacing: 0.1em; font-family: 'Barlow Condensed', sans-serif; font-weight: 600; }
+
+  /* ── FAB nueva reserva (día seleccionado) ── */
+  .fab-day {
+    position: sticky; bottom: 16px; left: 0; right: 0;
+    margin: 12px 16px 0;
+    background: var(--orange); color: #fff; border: none;
+    padding: 14px; width: calc(100% - 0px);
+    font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+
+  /* ── MODAL FORM ── */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 50; align-items: flex-end; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--dark); border-top: 2px solid var(--orange); width: 100%; max-height: 92vh; overflow-y: auto; padding-bottom: env(safe-area-inset-bottom); }
+  .modal-header { padding: 16px 16px 12px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: var(--dark); z-index: 1; }
+  .modal-title  { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--orange); }
+  .modal-close  { background: none; border: none; color: var(--muted); font-size: 24px; cursor: pointer; line-height: 1; padding: 4px; }
+  .modal-body   { padding: 16px; }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .form-row.full { grid-template-columns: 1fr; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  label { font-family: 'Barlow Condensed', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  input, select, textarea {
+    background: #111; border: 1px solid var(--border); color: var(--cream);
+    padding: 12px 12px; font-family: 'Barlow', sans-serif; font-size: 16px;
+    outline: none; width: 100%; border-radius: 0; -webkit-appearance: none;
+    transition: border-color 0.2s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--orange); }
+  select option { background: #111; }
+  textarea { resize: none; height: 72px; font-size: 15px; }
+
+  .modal-footer { padding: 12px 16px 20px; display: flex; gap: 10px; border-top: 1px solid var(--border); }
+  .modal-footer .btn-primary { flex: 1; padding: 14px; font-size: 15px; }
+  .modal-footer .btn-ghost   { padding: 14px 16px; font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+  .delete-btn { background: transparent; color: #c0392b; border: 1px solid #3a1515; padding: 14px 14px; font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; }
+
+  /* ── MOBILE only ── */
+  @media (max-width: 699px) {
+    .cal-day { height: calc((100svh - 230px) / 6); min-height: 70px; }
+  }
+
+  /* ── TABLET & DESKTOP: true two-column layout ── */
+  @media (min-width: 700px) {
+    /* Hide mobile sheet behavior completely */
+    .detail-backdrop { display: none !important; }
+    .sheet-handle { display: none; }
+
+    /* Full page two-column grid */
+    body { display: grid; grid-template-rows: auto auto auto 1fr; height: 100vh; overflow: hidden; }
+    header { grid-column: 1; }
+    .sync-bar { grid-column: 1; }
+    .stats-bar { grid-column: 1; }
+
+    .tablet-layout {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      overflow: hidden;
+      height: 100%;
+    }
+
+    /* Left: calendar scrollable */
+    .cal-side {
+      overflow-y: auto;
+      border-right: 1px solid var(--border);
+      padding-bottom: 24px;
+    }
+
+    /* Right: detail panel always visible */
+    .detail-sheet {
+      position: static !important;
+      transform: none !important;
+      max-height: 100%;
+      border-top: 2px solid var(--orange);
+      border-left: none;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--dark);
+    }
+    .detail-body { overflow-y: auto; flex: 1; }
+    .fab-day { position: static; margin: 0; width: 100%; border-radius: 0; }
+
+    /* Bigger cells */
+    .cal-day { min-height: 95px; padding: 8px 6px 6px; }
+    .res-chip { font-size: 11px; padding: 2px 6px; }
+    .day-num { font-size: 16px; }
+    .month-title { font-size: 28px; }
+    .stat-num { font-size: 26px; }
+    .stat-label { font-size: 10px; }
+
+    /* Modal centered */
+    .modal-overlay { align-items: center; }
+    .modal { max-width: 540px; border: 1px solid var(--border); border-top: 2px solid var(--orange); max-height: 90vh; }
+
+    /* Hide close button in static detail panel on tablet */
+    #sheet-close-btn { display: none; }
+    /* Hide detail panel until a day is selected */
+    .detail-sheet { visibility: hidden; opacity: 0; transition: opacity 0.2s; }
+    .detail-sheet.day-selected { visibility: visible; opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="brand-name">mylo</div>
+    <div class="brand-sub">Reservaciones</div>
+  </div>
+  <div class="header-actions">
+    <button class="btn-csv" onclick="exportData()">CSV</button>
+    <button class="btn-add" onclick="openModal()">+</button>
+  </div>
+</header>
+
+<div class="sync-bar">
+  <div class="sync-dot loading" id="sync-dot"></div>
+  <span id="sync-label">Conectando...</span>
+</div>
+
+<div class="stats-bar">
+  <div class="stat"><div class="stat-num" id="stat-total">—</div><div class="stat-label">Mes</div></div>
+  <div class="stat"><div class="stat-num" id="stat-confirmed">—</div><div class="stat-label">Conf.</div></div>
+  <div class="stat"><div class="stat-num" id="stat-pending">—</div><div class="stat-label">Pend.</div></div>
+  <div class="stat"><div class="stat-num" id="stat-covers">—</div><div class="stat-label">Pax</div></div>
+</div>
+
+<div class="tablet-layout">
+<div class="cal-side">
+<div class="month-nav">
+  <button class="nav-btn" onclick="changeMonth(-1)">&#8592;</button>
+  <div class="month-title" id="month-title"></div>
+  <button class="nav-btn" onclick="changeMonth(1)">&#8594;</button>
+</div>
+
+<div class="cal-wrap">
+  <div class="cal-grid" id="cal-grid"></div>
+</div>
+</div><!-- /cal-side -->
+
+<!-- DETAIL SHEET -->
+<div class="detail-backdrop" id="detail-backdrop" onclick="closeDetail()"></div>
+<div class="detail-sheet" id="detail-sheet">
+  <div class="sheet-handle"></div>
+  <div class="detail-header">
+    <div>
+      <div class="detail-date" id="detail-date">Selecciona un día</div>
+      <div class="detail-count" id="detail-count"></div>
+    </div>
+    <button class="sheet-close" id="sheet-close-btn" onclick="closeDetail()">×</button>
+  </div>
+  <div class="detail-body" id="detail-body"></div>
+  <button class="fab-day" id="fab-day" onclick="openModalForSelectedDate()">+ Nueva reserva este día</button>
+</div>
+</div><!-- /tablet-layout -->
+
+<!-- MODAL FORM -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Nueva Reserva</div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>Nombre</label><input type="text" id="f-name" placeholder="Comensal" autocomplete="off"></div>
+        <div class="form-group"><label>Teléfono</label><input type="tel" id="f-phone" placeholder="+52 998..."></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Fecha</label><input type="date" id="f-date"></div>
+        <div class="form-group"><label>Hora</label><input type="time" id="f-time" value="20:00"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Personas</label><input type="number" id="f-pax" min="1" max="30" value="2"></div>
+        <div class="form-group"><label>Referencia</label>
+          <select id="f-table">
+            <option value="">— Sin referencia</option>
+            <option>Franco Guerrero</option>
+            <option>Vanessa Gasperin</option>
+            <option>Luis Barrera</option>
+            <option>Hiram Arroyo</option>
+            <option>Ely Geller</option>
+            <option>Ana Romero</option>
+            <option>Mylo Restaurante</option>
+            <option>Otra</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Estado</label>
+          <select id="f-status">
+            <option value="pending">Pendiente</option>
+            <option value="confirmed">Confirmada</option>
+            <option value="cancelled">Cancelada</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Ocasión</label>
+          <select id="f-occasion">
+            <option value="">—</option>
+            <option>Cumpleaños</option><option>Aniversario</option>
+            <option>Negocio</option><option>Evento especial</option><option>Despedida</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="form-group"><label>Notas</label><textarea id="f-notes" placeholder="Alergias, peticiones especiales…"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="delete-btn" id="delete-btn" onclick="deleteReservation()" style="display:none">🗑</button>
+      <button class="btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn-primary" onclick="saveReservation()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPA_URL = 'https://sakrwpdlymstexmshjay.supabase.co';
+const SUPA_KEY = 'sb_publishable_1vIabk5n0KaOZfO8bBCTbg_n7__6_Ab';
+const TABLE    = 'reservaciones_mylo';
+
+async function sbFetch(path, opts = {}) {
+  const res = await fetch(`${SUPA_URL}/rest/v1/${path}`, {
+    headers: {
+      'apikey': SUPA_KEY,
+      'Authorization': `Bearer ${SUPA_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': opts.prefer || 'return=representation',
+      ...opts.headers
+    },
+    ...opts
+  });
+  if (!res.ok) throw new Error(await res.text());
+  const text = await res.text();
+  return text ? JSON.parse(text) : [];
+}
+
+const DAYS   = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+let currentYear, currentMonth, selectedDate = null, editingId = null;
+let reservations = [];
+
+function setSync(state, label) {
+  document.getElementById('sync-dot').className = 'sync-dot ' + state;
+  document.getElementById('sync-label').textContent = label;
+}
+
+async function loadReservations() {
+  try {
+    setSync('loading', 'Sincronizando...');
+    const data = await sbFetch(`${TABLE}?select=*&order=date.asc,time.asc`);
+    reservations = data.map(r => ({
+      id: r.id, name: r.name, phone: r.phone||'',
+      date: r.date, time: r.time ? r.time.slice(0,5) : '',
+      pax: r.pax||2, table: r.mesa||'', status: r.status||'pending',
+      occasion: r.occasion||'', notes: r.notes||''
+    }));
+    setSync('ok', 'Sincronizado');
+    renderCalendar();
+    if (selectedDate) renderDetail(selectedDate);
+    updateStats();
+  } catch(e) {
+    setSync('error', 'Sin conexión');
+  }
+}
+
+function formatDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function init() {
+  const now = new Date();
+  currentYear = now.getFullYear();
+  currentMonth = now.getMonth();
+  renderCalendar();
+  loadReservations();
+  setInterval(loadReservations, 30000);
+}
+
+function changeMonth(delta) {
+  currentMonth += delta;
+  if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+  if (currentMonth < 0)  { currentMonth = 11; currentYear--; }
+  renderCalendar();
+  updateStats();
+}
+
+function renderCalendar() {
+  document.getElementById('month-title').innerHTML =
+    `<em>${MONTHS[currentMonth].toUpperCase()}</em> ${currentYear}`;
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+  DAYS.forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'cal-dow'; el.textContent = d; grid.appendChild(el);
+  });
+  const firstDay    = new Date(currentYear, currentMonth, 1).getDay();
+  const daysInMonth = new Date(currentYear, currentMonth+1, 0).getDate();
+  const today       = formatDate(new Date());
+  for (let i = 0; i < firstDay; i++) {
+    const el = document.createElement('div');
+    el.className = 'cal-day empty';
+    const n = document.createElement('div'); n.className = 'day-num';
+    el.appendChild(n); grid.appendChild(el);
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayRes = reservations.filter(r => r.date === ds);
+    const el = document.createElement('div');
+    el.className = 'cal-day' + (ds===today?' today':'') + (ds===selectedDate?' selected':'');
+    el.onclick = () => selectDay(ds, el);
+    const num = document.createElement('div');
+    num.className = 'day-num'; num.textContent = d; el.appendChild(num);
+    if (dayRes.length > 0) {
+      const dots = document.createElement('div'); dots.className = 'res-dots';
+      dayRes.slice(0,2).forEach(r => {
+        const chip = document.createElement('div');
+        chip.className = `res-chip ${r.status}`;
+        chip.textContent = `${r.time} ${r.name.split(' ')[0]}`;
+        dots.appendChild(chip);
+      });
+      if (dayRes.length > 2) {
+        const more = document.createElement('div');
+        more.className = 'more-chip';
+        more.textContent = `+${dayRes.length-2}`;
+        dots.appendChild(more);
+      }
+      el.appendChild(dots);
+    }
+    grid.appendChild(el);
+  }
+}
+
+function selectDay(ds, el) {
+  document.querySelectorAll('.cal-day.selected').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedDate = ds;
+  renderDetail(ds);
+  markDaySelected();
+  openDetail();
+}
+
+function isTablet() { return window.innerWidth >= 700; }
+function markDaySelected() { document.getElementById('detail-sheet').classList.add('day-selected'); }
+function openDetail() {
+  if (!isTablet()) {
+    document.getElementById('detail-backdrop').classList.add('open');
+    document.getElementById('detail-sheet').classList.add('open');
+  }
+}
+function closeDetail() {
+  if (!isTablet()) {
+    document.getElementById('detail-backdrop').classList.remove('open');
+    document.getElementById('detail-sheet').classList.remove('open');
+  }
+}
+
+function renderDetail(ds) {
+  if (!ds) return;
+  const [y,m,d] = ds.split('-');
+  const obj = new Date(parseInt(y), parseInt(m)-1, parseInt(d));
+  const dayName = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'][obj.getDay()];
+  document.getElementById('detail-date').innerHTML =
+    `<em>${dayName.toUpperCase()}</em> ${parseInt(d)} ${MONTHS[parseInt(m)-1].toUpperCase()}`;
+  const dayRes = reservations.filter(r => r.date===ds).sort((a,b)=>a.time.localeCompare(b.time));
+  const covers = dayRes.reduce((s,r)=>s+parseInt(r.pax||0),0);
+  document.getElementById('detail-count').textContent =
+    dayRes.length===0 ? 'Sin reservas' : `${dayRes.length} reserva${dayRes.length>1?'s':''} · ${covers} pax`;
+  const body = document.getElementById('detail-body');
+  if (dayRes.length === 0) {
+    body.innerHTML = `<div class="empty-day"><div class="empty-icon">SIN RES.</div><p>No hay reservas este día</p></div>`;
+    return;
+  }
+  const sl = { confirmed:'Confirmada', pending:'Pendiente', cancelled:'Cancelada' };
+  body.innerHTML = dayRes.map(r => `
+    <div class="res-card" onclick="editReservation(${r.id})">
+      <div class="res-card-top">
+        <div class="res-name">${r.name}</div>
+        <div class="status-badge ${r.status}">${sl[r.status]}</div>
+      </div>
+      <div class="res-meta">
+        <div class="meta-item"><span class="meta-label">Hora</span><span class="meta-value">${r.time}</span></div>
+        <div class="meta-item"><span class="meta-label">Personas</span><span class="meta-value">${r.pax} pax</span></div>
+        <div class="meta-item"><span class="meta-label">Ref.</span><span class="meta-value">${r.table||'—'}</span></div>
+        <div class="meta-item"><span class="meta-label">Tel</span><span class="meta-value">${r.phone||'—'}</span></div>
+        ${r.occasion?`<div class="meta-item"><span class="meta-label">Ocasión</span><span class="meta-value">${r.occasion}</span></div>`:''}
+      </div>
+      ${r.notes?`<div class="res-notes">${r.notes}</div>`:''}
+    </div>
+  `).join('');
+}
+
+function updateStats() {
+  const mo = reservations.filter(r => {
+    const [y,m] = r.date.split('-');
+    return parseInt(y)===currentYear && parseInt(m)-1===currentMonth;
+  });
+  document.getElementById('stat-total').textContent     = mo.length;
+  document.getElementById('stat-confirmed').textContent = mo.filter(r=>r.status==='confirmed').length;
+  document.getElementById('stat-pending').textContent   = mo.filter(r=>r.status==='pending').length;
+  document.getElementById('stat-covers').textContent    = mo.reduce((s,r)=>s+parseInt(r.pax||0),0);
+}
+
+function openModalForSelectedDate() {
+  closeDetail();
+  openModal(selectedDate);
+}
+
+function openModal(date) {
+  editingId = null;
+  document.getElementById('modal-title').textContent  = 'NUEVA RESERVA';
+  document.getElementById('delete-btn').style.display = 'none';
+  document.getElementById('f-name').value     = '';
+  document.getElementById('f-phone').value    = '';
+  const todayMin = formatDate(new Date());
+  const fDate = document.getElementById('f-date');
+  fDate.min = todayMin;
+  fDate.value = date || selectedDate || todayMin;
+  document.getElementById('f-time').value     = '20:00';
+  document.getElementById('f-pax').value      = '2';
+  document.getElementById('f-table').value    = '';
+  document.getElementById('f-status').value   = 'pending';
+  document.getElementById('f-occasion').value = '';
+  document.getElementById('f-notes').value    = '';
+  document.getElementById('modal').classList.add('open');
+}
+
+function editReservation(id) {
+  const r = reservations.find(x=>x.id===id);
+  if (!r) return;
+  editingId = id;
+  closeDetail();
+  document.getElementById('modal-title').textContent   = 'EDITAR RESERVA';
+  document.getElementById('delete-btn').style.display  = '';
+  document.getElementById('f-name').value     = r.name;
+  document.getElementById('f-phone').value    = r.phone||'';
+  document.getElementById('f-date').value     = r.date;
+  document.getElementById('f-time').value     = r.time;
+  document.getElementById('f-pax').value      = r.pax;
+  document.getElementById('f-table').value    = r.table||'';
+  document.getElementById('f-status').value   = r.status;
+  document.getElementById('f-occasion').value = r.occasion||'';
+  document.getElementById('f-notes').value    = r.notes||'';
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+async function saveReservation() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { alert('El nombre es requerido'); return; }
+  // Block past dates/times
+  const selDate = document.getElementById('f-date').value;
+  const selTime = document.getElementById('f-time').value;
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+  const nowTime = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+  if (selDate < todayStr) {
+    alert('No se puede hacer una reserva en una fecha que ya pasó.');
+    return;
+  }
+  if (selDate === todayStr && selTime < nowTime) {
+    alert('No se puede hacer una reserva en una hora que ya pasó hoy.');
+    return;
+  }
+  const data = {
+    name, phone: document.getElementById('f-phone').value.trim(),
+    date: document.getElementById('f-date').value,
+    time: document.getElementById('f-time').value + ':00',
+    pax:  parseInt(document.getElementById('f-pax').value)||2,
+    mesa: document.getElementById('f-table').value,
+    status:   document.getElementById('f-status').value,
+    occasion: document.getElementById('f-occasion').value,
+    notes:    document.getElementById('f-notes').value.trim(),
+  };
+  try {
+    setSync('loading', 'Guardando...');
+    if (editingId) {
+      await sbFetch(`${TABLE}?id=eq.${editingId}`, { method:'PATCH', body: JSON.stringify(data) });
+    } else {
+      await sbFetch(TABLE, { method:'POST', body: JSON.stringify(data) });
+    }
+    closeModal();
+    await loadReservations();
+  } catch(e) {
+    setSync('error', 'Error al guardar');
+    alert('Error: ' + e.message);
+  }
+}
+
+async function deleteReservation() {
+  if (!editingId) return;
+  if (!confirm('¿Eliminar esta reserva?')) return;
+  try {
+    setSync('loading', 'Eliminando...');
+    await sbFetch(`${TABLE}?id=eq.${editingId}`, { method:'DELETE', prefer:'return=minimal' });
+    closeModal();
+    await loadReservations();
+  } catch(e) {
+    setSync('error', 'Error al eliminar');
+  }
+}
+
+document.getElementById('modal').addEventListener('click', e => {
+  if (e.target===document.getElementById('modal')) closeModal();
+});
+
+init();
+</script>
+</body>
+</html>
