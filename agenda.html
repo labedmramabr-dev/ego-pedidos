@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agenda de pendientes</title>
+<style>
+  :root{
+    --verde:#3a5845;
+    --verde-claro:#5b7d68;
+    --crema:#e8dcc8;
+    --crema-suave:#f4eee2;
+    --tinta:#26261f;
+    --tinta-suave:#6b6a5f;
+    --linea:#ddd4c2;
+    --blanco:#fbf8f1;
+    --alta:#b5452f;
+    --media:#c98a2b;
+    --baja:#5b7d68;
+    --r:12px;
+    --sombra:0 1px 0 rgba(38,38,31,.04);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:var(--crema-suave);
+    color:var(--tinta);
+    line-height:1.5;
+    padding:20px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1000px;margin:0 auto}
+
+  /* Frase latín */
+  .latin{
+    background:var(--verde);color:var(--crema);
+    border-radius:var(--r);padding:14px 20px;margin-bottom:20px;
+    display:flex;flex-direction:column;gap:2px;
+  }
+  .latin .frase{font-family:Georgia,serif;font-style:italic;font-size:16px}
+  .latin .trad{font-size:12px;color:#cdd6cb;letter-spacing:.02em}
+
+  header{
+    display:flex;align-items:flex-end;justify-content:space-between;
+    flex-wrap:wrap;gap:16px;margin-bottom:24px;
+  }
+  .marca{display:flex;flex-direction:column;gap:2px}
+  .eyebrow{
+    font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--verde-claro);font-weight:600;
+  }
+  h1{
+    font-family:Georgia,"Times New Roman",serif;
+    font-size:27px;font-weight:500;color:var(--verde);letter-spacing:-.01em;line-height:1.1;
+  }
+  .nav{display:flex;align-items:center;gap:8px}
+  .mes{
+    font-family:Georgia,serif;font-size:19px;color:var(--tinta);
+    min-width:170px;text-align:center;text-transform:capitalize;
+  }
+  button{
+    font-family:inherit;font-size:14px;cursor:pointer;border:none;
+    background:none;color:inherit;
+  }
+  .icon-btn{
+    width:38px;height:38px;border-radius:50%;
+    border:1px solid var(--linea);background:var(--blanco);
+    display:flex;align-items:center;justify-content:center;
+    font-size:18px;color:var(--verde);transition:.15s;
+  }
+  .icon-btn:hover{background:var(--crema);border-color:var(--verde-claro)}
+  .btn-hoy{
+    border:1px solid var(--linea);background:var(--blanco);
+    border-radius:20px;padding:7px 16px;font-size:13px;color:var(--verde);
+    font-weight:500;transition:.15s;
+  }
+  .btn-hoy:hover{background:var(--crema)}
+
+  .grid-cal{
+    background:var(--blanco);border:1px solid var(--linea);
+    border-radius:var(--r);overflow:hidden;box-shadow:var(--sombra);
+  }
+  .layout{display:grid;grid-template-columns:1fr 300px;gap:18px;align-items:start}
+  .lateral{
+    background:var(--blanco);border:1px solid var(--linea);
+    border-radius:var(--r);box-shadow:var(--sombra);overflow:hidden;
+    display:flex;flex-direction:column;
+  }
+  .lateral-top{background:var(--verde);color:var(--crema);padding:13px 16px}
+  .lateral-et{font-size:11px;letter-spacing:.18em;text-transform:uppercase;font-weight:600;display:block;color:#cdd6cb}
+  .lateral-fecha{font-family:Georgia,serif;font-size:16px;text-transform:capitalize}
+  .lateral-lista{padding:12px 14px;display:flex;flex-direction:column;gap:8px;max-height:520px;overflow-y:auto}
+  .lat-item{
+    display:flex;gap:9px;align-items:flex-start;font-size:13px;
+    padding:8px 10px;border-radius:8px;background:var(--crema-suave);border-left:3px solid;
+  }
+  .lat-item.alta{border-left-color:var(--alta)}
+  .lat-item.media{border-left-color:var(--media)}
+  .lat-item.baja{border-left-color:var(--baja)}
+  .lat-item.done{opacity:.55}
+  .lat-item .lcheck{
+    width:18px;height:18px;border-radius:5px;border:2px solid var(--linea);
+    flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    font-size:11px;color:#fff;margin-top:1px;
+  }
+  .lat-item.done .lcheck{background:var(--verde);border-color:var(--verde)}
+  .lat-item .ltxt{flex:1;min-width:0}
+  .lat-item .ltit{font-weight:500;word-break:break-word}
+  .lat-item.done .ltit{text-decoration:line-through;color:var(--tinta-suave)}
+  .lat-item .lmeta{font-size:10px;color:var(--tinta-suave);margin-top:2px}
+  .lat-vacio{text-align:center;color:var(--tinta-suave);font-size:13px;padding:24px 8px}
+  .lateral-add{
+    margin:0 14px 14px;background:var(--blanco);border:1px solid var(--linea);
+    color:var(--verde);border-radius:9px;padding:10px;font-size:13px;font-weight:500;transition:.15s;
+  }
+  .lateral-add:hover{background:var(--crema-suave);border-color:var(--verde-claro)}
+
+  .bloc-top{padding:13px 16px 4px;border-top:1px solid var(--linea)}
+  .bloc-sub{font-size:11px;color:var(--tinta-suave);display:block;margin-top:1px}
+  .bloc-add{display:flex;gap:7px;padding:8px 14px 4px}
+  .bloc-add input{
+    flex:1;font-family:inherit;font-size:13px;color:var(--tinta);
+    background:var(--blanco);border:1px solid var(--linea);
+    border-radius:8px;padding:8px 10px;transition:.12s;
+  }
+  .bloc-add input:focus{outline:none;border-color:var(--verde-claro);box-shadow:0 0 0 3px rgba(91,125,104,.15)}
+  .bloc-add button{
+    width:36px;flex-shrink:0;background:var(--verde);color:var(--crema);
+    border-radius:8px;font-size:18px;font-weight:500;line-height:1;transition:.15s;
+  }
+  .bloc-add button:hover{background:#2e4838}
+  .bloc-lista{padding:8px 14px 16px;display:flex;flex-direction:column;gap:7px;max-height:260px;overflow-y:auto}
+  .bloc-item{
+    display:flex;gap:9px;align-items:flex-start;font-size:13px;line-height:1.4;
+    padding:9px 11px;border-radius:8px;background:var(--crema-suave);
+    border-left:3px solid var(--verde-claro);
+  }
+  .bloc-item .btxt{flex:1;min-width:0;word-break:break-word;color:var(--tinta)}
+  .bloc-item .bdel{color:#c3bba8;font-size:15px;cursor:pointer;flex-shrink:0;line-height:1.2}
+  .bloc-item .bdel:hover{color:var(--alta)}
+  .bloc-vacio{text-align:center;color:var(--tinta-suave);font-size:12px;padding:14px 8px}
+  .dow{
+    display:grid;grid-template-columns:repeat(7,1fr);
+    background:var(--verde);
+  }
+  .dow div{
+    padding:11px 8px;text-align:center;font-size:11px;font-weight:600;
+    letter-spacing:.12em;text-transform:uppercase;color:var(--crema);
+  }
+  .dias{display:grid;grid-template-columns:repeat(7,1fr)}
+  .celda{
+    min-height:104px;border-right:1px solid var(--linea);
+    border-bottom:1px solid var(--linea);padding:7px 8px;
+    cursor:pointer;transition:.12s;position:relative;background:var(--blanco);
+    display:flex;flex-direction:column;gap:4px;
+  }
+  .celda:nth-child(7n){border-right:none}
+  .celda:hover{background:var(--crema-suave)}
+  .celda.fuera{background:#f6f2e8;cursor:default}
+  .celda.fuera:hover{background:#f6f2e8}
+  .celda.fuera .num{color:#c3bba8}
+  .num{font-size:13px;font-weight:600;color:var(--tinta-suave);align-self:flex-start}
+  .celda.hoy .num{
+    background:var(--verde);color:var(--crema);
+    width:26px;height:26px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .puntos{display:flex;flex-wrap:wrap;gap:3px;margin-top:auto}
+  .chip{
+    font-size:11px;line-height:1.25;width:100%;
+    padding:2px 6px;border-radius:5px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    border-left:3px solid;
+  }
+  .chip.alta{background:#f6e4df;border-color:var(--alta);color:#7c2c1c}
+  .chip.media{background:#f7ecd6;border-color:var(--media);color:#7a5310}
+  .chip.baja{background:#e4ecde;border-color:var(--baja);color:#33503e}
+  .chip.hecho{opacity:.5;text-decoration:line-through}
+  .mas{font-size:10px;color:var(--tinta-suave);font-weight:600}
+
+  /* Modal */
+  .overlay{
+    position:fixed;inset:0;background:rgba(38,38,31,.42);
+    display:none;align-items:flex-start;justify-content:center;
+    padding:40px 16px;z-index:50;overflow-y:auto;
+  }
+  .overlay.open{display:flex}
+  .panel{
+    background:var(--crema-suave);border-radius:16px;
+    width:100%;max-width:480px;box-shadow:0 18px 50px rgba(38,38,31,.25);
+    overflow:hidden;
+  }
+  .panel-top{
+    background:var(--verde);color:var(--crema);padding:18px 22px;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .panel-top .fecha-t{font-family:Georgia,serif;font-size:19px;text-transform:capitalize}
+  .panel-top .cerrar{color:var(--crema);font-size:24px;line-height:1}
+  .panel-body{padding:20px 22px;max-height:62vh;overflow-y:auto}
+
+  .nota-dia{margin-bottom:18px}
+  .nota-dia label{font-size:11px;font-weight:600;color:var(--tinta-suave);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:6px}
+  .nota-dia textarea{
+    width:100%;font-family:inherit;font-size:14px;color:var(--tinta);
+    background:var(--blanco);border:1px solid var(--linea);
+    border-radius:9px;padding:10px 12px;resize:vertical;min-height:64px;line-height:1.5;transition:.12s;
+  }
+  .nota-dia textarea:focus{outline:none;border-color:var(--verde-claro);box-shadow:0 0 0 3px rgba(91,125,104,.15)}
+  .nota-estado{font-size:11px;color:var(--baja);margin-top:5px;height:14px;transition:.2s}
+  .sep-pend{font-size:11px;font-weight:600;color:var(--tinta-suave);text-transform:uppercase;letter-spacing:.08em;border-top:1px solid var(--linea);padding-top:14px;margin-bottom:12px}
+
+  .lista{display:flex;flex-direction:column;gap:9px;margin-bottom:18px}
+  .item{
+    background:var(--blanco);border:1px solid var(--linea);
+    border-radius:10px;padding:11px 13px;display:flex;gap:11px;
+    align-items:flex-start;border-left:4px solid;
+  }
+  .item.alta{border-left-color:var(--alta)}
+  .item.media{border-left-color:var(--media)}
+  .item.baja{border-left-color:var(--baja)}
+  .item .check{
+    width:21px;height:21px;border-radius:6px;border:2px solid var(--linea);
+    flex-shrink:0;cursor:pointer;display:flex;align-items:center;
+    justify-content:center;font-size:13px;color:#fff;margin-top:1px;transition:.12s;
+  }
+  .item.done .check{background:var(--verde);border-color:var(--verde)}
+  .item .cont{flex:1;min-width:0}
+  .item .tit{font-size:14px;font-weight:500;word-break:break-word}
+  .item.done .tit{text-decoration:line-through;color:var(--tinta-suave)}
+  .item .nota{font-size:12px;color:var(--tinta-suave);margin-top:4px;white-space:pre-wrap;word-break:break-word}
+  .item .meta{font-size:11px;color:var(--tinta-suave);margin-top:5px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .tag{
+    font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;
+    background:var(--crema);color:var(--verde);text-transform:uppercase;letter-spacing:.04em;
+  }
+  .item .del{color:#c3bba8;font-size:16px;cursor:pointer;flex-shrink:0}
+  .item .del:hover{color:var(--alta)}
+  .vacio{text-align:center;color:var(--tinta-suave);font-size:13px;padding:20px 0}
+
+  .form{display:flex;flex-direction:column;gap:11px;border-top:1px solid var(--linea);padding-top:16px}
+  .form label{font-size:11px;font-weight:600;color:var(--tinta-suave);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:5px}
+  input,select,textarea{
+    width:100%;font-family:inherit;font-size:14px;color:var(--tinta);
+    background:var(--blanco);border:1px solid var(--linea);
+    border-radius:9px;padding:10px 12px;transition:.12s;
+  }
+  textarea{resize:vertical;min-height:60px;line-height:1.45}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--verde-claro);box-shadow:0 0 0 3px rgba(91,125,104,.15)}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  .btn-add{
+    background:var(--verde);color:var(--crema);border-radius:9px;
+    padding:12px;font-size:14px;font-weight:600;margin-top:4px;transition:.15s;
+  }
+  .btn-add:hover{background:#2e4838}
+
+  /* Bienvenida */
+  .bienv-panel{max-width:440px}
+  .bienv-body{padding:22px;text-align:left}
+  .bienv-body .saludo{font-family:Georgia,serif;font-size:23px;color:var(--verde);margin-bottom:6px}
+  .bienv-body .fecha-b{font-size:13px;color:var(--tinta-suave);text-transform:capitalize;margin-bottom:18px}
+  .bienv-resumen{
+    background:var(--crema);border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:14px;
+  }
+  .bienv-resumen .rl{display:flex;flex-direction:column;gap:7px}
+  .bienv-resumen .rl div{display:flex;gap:9px;align-items:flex-start}
+  .bienv-resumen .punto{width:7px;height:7px;border-radius:50%;margin-top:7px;flex-shrink:0}
+  .bienv-resumen .punto.alta{background:var(--alta)}
+  .bienv-resumen .punto.media{background:var(--media)}
+  .bienv-resumen .punto.baja{background:var(--baja)}
+  .bienv-resumen .nada{color:var(--tinta-suave)}
+  .bienv-btns{display:flex;gap:10px}
+  .bienv-btns button{flex:1;border-radius:9px;padding:12px;font-size:14px;font-weight:600;transition:.15s}
+  .b-ver{background:var(--blanco);border:1px solid var(--linea);color:var(--verde)}
+  .b-ver:hover{background:var(--crema-suave)}
+  .b-add{background:var(--verde);color:var(--crema)}
+  .b-add:hover{background:#2e4838}
+
+  footer{text-align:center;margin-top:26px;font-size:11px;color:var(--tinta-suave)}
+  footer button{text-decoration:underline;color:var(--tinta-suave);font-size:11px;margin:0 6px}
+
+  @media(max-width:560px){
+    body{padding:12px}
+    h1{font-size:24px}
+    .layout{grid-template-columns:1fr}
+    .celda{min-height:74px;padding:5px}
+    .chip{font-size:10px}
+    .num{font-size:12px}
+    .row2{grid-template-columns:1fr}
+    .dow div{font-size:10px;padding:8px 2px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="latin">
+    <span class="frase" id="latFrase"></span>
+    <span class="trad" id="latTrad"></span>
+  </div>
+
+  <header>
+    <div class="marca">
+      <span class="eyebrow">Tu día · organizado</span>
+      <h1>Agenda de pendientes</h1>
+    </div>
+    <div class="nav">
+      <button class="btn-hoy" id="hoy">Hoy</button>
+      <button class="icon-btn" id="prev">&lsaquo;</button>
+      <span class="mes" id="mesLabel"></span>
+      <button class="icon-btn" id="next">&rsaquo;</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <div class="grid-cal">
+      <div class="dow">
+        <div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div>
+      </div>
+      <div class="dias" id="dias"></div>
+    </div>
+
+    <aside class="lateral">
+      <div class="lateral-top">
+        <span class="lateral-et">Hoy</span>
+        <span class="lateral-fecha" id="latFecha"></span>
+      </div>
+      <div class="lateral-lista" id="latLista"></div>
+      <button class="lateral-add" id="latAdd">+ Agregar pendiente de hoy</button>
+
+      <div class="bloc-top">
+        <span class="lateral-et" style="color:var(--verde)">Notas sueltas</span>
+        <span class="bloc-sub">Ideas y recordatorios sin fecha</span>
+      </div>
+      <div class="bloc-add">
+        <input type="text" id="blocInput" placeholder="Recordar esto, hacer cuando haya tiempo..." maxlength="200">
+        <button id="blocAdd" aria-label="Agregar nota">+</button>
+      </div>
+      <div class="bloc-lista" id="blocLista"></div>
+    </aside>
+  </div>
+
+  <footer>
+    Tus datos se guardan en este navegador.
+    <button id="export">Exportar copia</button>·
+    <button id="import">Importar</button>
+    <input type="file" id="fileImp" accept="application/json" style="display:none">
+  </footer>
+</div>
+
+<!-- Modal bienvenida -->
+<div class="overlay" id="ovBienv">
+  <div class="panel bienv-panel">
+    <div class="panel-top">
+      <span class="fecha-t">Buen día</span>
+      <button class="cerrar" id="cerrarB">&times;</button>
+    </div>
+    <div class="bienv-body">
+      <div class="saludo" id="bSaludo"></div>
+      <div class="fecha-b" id="bFecha"></div>
+      <div class="bienv-resumen"><div class="rl" id="bLista"></div></div>
+      <div class="bienv-btns">
+        <button class="b-ver" id="bVer">Ver el día</button>
+        <button class="b-add" id="bAdd">Agregar pendiente</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal día -->
+<div class="overlay" id="overlay">
+  <div class="panel">
+    <div class="panel-top">
+      <span class="fecha-t" id="fechaT"></span>
+      <button class="cerrar" id="cerrar">&times;</button>
+    </div>
+    <div class="panel-body">
+      <div class="nota-dia">
+        <label>Nota del día</label>
+        <textarea id="notaDia" placeholder="Escribe aquí cualquier nota libre de este día..." maxlength="1500"></textarea>
+        <div class="nota-estado" id="notaEstado"></div>
+      </div>
+      <div class="sep-pend">Pendientes</div>
+      <div class="lista" id="lista"></div>
+      <div class="form">
+        <div>
+          <label>Pendiente</label>
+          <input type="text" id="iTit" placeholder="¿Qué hay que hacer?" maxlength="120">
+        </div>
+        <div>
+          <label>Nota (opcional)</label>
+          <textarea id="iNota" placeholder="Detalles, contexto, recordatorios..." maxlength="600"></textarea>
+        </div>
+        <div class="row2">
+          <div>
+            <label>Prioridad</label>
+            <select id="iPri">
+              <option value="alta">Alta</option>
+              <option value="media" selected>Media</option>
+              <option value="baja">Baja</option>
+            </select>
+          </div>
+          <div>
+            <label>Hora</label>
+            <input type="time" id="iHora">
+          </div>
+        </div>
+        <div>
+          <label>Categoría</label>
+          <select id="iCat">
+            <option value="EGO">EGO</option>
+            <option value="Mylo">Mylo</option>
+            <option value="Panadería">Panadería</option>
+            <option value="Administración">Administración</option>
+            <option value="Personal">Personal</option>
+            <option value="General" selected>General</option>
+          </select>
+        </div>
+        <button class="btn-add" id="add">Agregar pendiente</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY='calendario_pendientes_v1';
+const KEY_NOTAS='agenda_notas_dia_v1';
+const KEY_BLOC='agenda_bloc_notas_v1';
+const VISTO='agenda_ultimo_visto';
+const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+const FRASES=[
+  ["Carpe diem.","Aprovecha el día."],
+  ["Dum spiro, spero.","Mientras respiro, espero."],
+  ["Festina lente.","Apresúrate despacio."],
+  ["Per aspera ad astra.","Por el esfuerzo, a las estrellas."],
+  ["Acta, non verba.","Hechos, no palabras."],
+  ["Veni, vidi, vici.","Llegué, vi, vencí."],
+  ["Aut viam inveniam aut faciam.","Hallaré un camino o lo haré."],
+  ["Labor omnia vincit.","El trabajo todo lo vence."],
+  ["Vincit qui se vincit.","Vence quien se vence a sí mismo."],
+  ["Fortes fortuna adiuvat.","La fortuna ayuda a los audaces."],
+  ["Nulla dies sine linea.","Ningún día sin una línea."],
+  ["Sic parvis magna.","De lo pequeño, lo grande."],
+  ["Audentes fortuna iuvat.","A los osados la fortuna favorece."],
+  ["Ad meliora.","Hacia cosas mejores."],
+  ["Tempus fugit.","El tiempo vuela."],
+  ["Memento vivere.","Recuerda vivir."],
+  ["Qui non proficit, deficit.","Quien no avanza, retrocede."],
+  ["Age quod agis.","Haz bien lo que haces."],
+  ["Ad astra per aspera.","A las estrellas por el esfuerzo."],
+  ["Dum vita est, spes est.","Mientras hay vida, hay esperanza."],
+  ["Non progredi est regredi.","No avanzar es retroceder."],
+  ["Faber est suae quisque fortunae.","Cada quien forja su destino."],
+  ["Disce quasi semper victurus.","Aprende como si fueras a vivir siempre."],
+  ["Suaviter in modo, fortiter in re.","Suave en la forma, firme en el fondo."],
+  ["Quod cito fit, cito perit.","Lo que pronto se hace, pronto perece."],
+  ["Bene facere et laetari.","Hacer el bien y alegrarse."],
+  ["Ora et labora.","Reza y trabaja."],
+  ["Nil sine magno labore.","Nada sin gran esfuerzo."],
+  ["Virtus in actione consistit.","La virtud está en la acción."],
+  ["Hodie mihi, cras tibi.","Hoy por mí, mañana por ti."],
+  ["Lux in tenebris.","Luz en las tinieblas."]
+];
+
+let datos=cargar();
+let notas=cargarNotas();
+let bloc=cargarBloc();
+let vista=new Date(); vista.setDate(1);
+let diaSel=null;
+let notaTimer=null;
+
+function cargar(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return {}}}
+function guardar(){localStorage.setItem(KEY,JSON.stringify(datos))}
+function cargarNotas(){try{return JSON.parse(localStorage.getItem(KEY_NOTAS))||{}}catch(e){return {}}}
+function guardarNotas(){localStorage.setItem(KEY_NOTAS,JSON.stringify(notas))}
+function cargarBloc(){try{return JSON.parse(localStorage.getItem(KEY_BLOC))||[]}catch(e){return []}}
+function guardarBloc(){localStorage.setItem(KEY_BLOC,JSON.stringify(bloc))}
+function clave(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function esHoy(d){const h=new Date();return d.getDate()===h.getDate()&&d.getMonth()===h.getMonth()&&d.getFullYear()===h.getFullYear()}
+
+// frase del día: índice estable por fecha
+function fraseDelDia(d){
+  const semilla=Math.floor(new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime()/86400000);
+  return FRASES[semilla%FRASES.length];
+}
+function pintarLatin(){
+  const f=fraseDelDia(new Date());
+  document.getElementById('latFrase').textContent='"'+f[0]+'"';
+  document.getElementById('latTrad').textContent=f[1];
+}
+
+function render(){
+  document.getElementById('mesLabel').textContent=MESES[vista.getMonth()]+' '+vista.getFullYear();
+  const cont=document.getElementById('dias');cont.innerHTML='';
+  const primero=new Date(vista.getFullYear(),vista.getMonth(),1);
+  let offset=(primero.getDay()+6)%7;
+  const inicio=new Date(primero);inicio.setDate(1-offset);
+  for(let i=0;i<42;i++){
+    const d=new Date(inicio);d.setDate(inicio.getDate()+i);
+    const fuera=d.getMonth()!==vista.getMonth();
+    const cel=document.createElement('div');
+    cel.className='celda'+(fuera?' fuera':'')+(esHoy(d)?' hoy':'');
+    const num=document.createElement('div');num.className='num';num.textContent=d.getDate();
+    cel.appendChild(num);
+    const items=(datos[clave(d)]||[]);
+    if(items.length){
+      const wrap=document.createElement('div');wrap.className='puntos';
+      items.slice(0,3).forEach(it=>{
+        const c=document.createElement('div');
+        c.className='chip '+it.pri+(it.done?' hecho':'');
+        c.textContent=(it.hora?it.hora+' ':'')+it.tit;
+        wrap.appendChild(c);
+      });
+      if(items.length>3){const m=document.createElement('div');m.className='mas';m.textContent='+'+(items.length-3)+' más';wrap.appendChild(m);}
+      cel.appendChild(wrap);
+    }
+    if((notas[clave(d)]||'').trim()){
+      const ico=document.createElement('div');
+      ico.style.cssText='position:absolute;top:7px;right:8px;color:var(--verde-claro);font-size:12px';
+      ico.textContent='✎';ico.title='Nota del día';
+      cel.appendChild(ico);
+    }
+    if(!fuera)cel.onclick=()=>abrir(d);
+    cont.appendChild(cel);
+  }
+}
+
+function pintarLateral(){
+  const hoy=new Date();
+  document.getElementById('latFecha').textContent=hoy.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'});
+  const cont=document.getElementById('latLista');cont.innerHTML='';
+  const items=ordenar(datos[clave(hoy)]||[]);
+  if(!items.length){
+    cont.innerHTML='<div class="lat-vacio">Sin pendientes para hoy.<br>Día despejado.</div>';
+    return;
+  }
+  items.forEach(it=>{
+    const el=document.createElement('div');
+    el.className='lat-item '+it.pri+(it.done?' done':'');
+    el.innerHTML='<div class="lcheck">'+(it.done?'&check;':'')+'</div>'+
+      '<div class="ltxt"><div class="ltit"></div><div class="lmeta"></div></div>';
+    el.querySelector('.ltit').textContent=it.tit;
+    el.querySelector('.lmeta').textContent=(it.hora?it.hora+' · ':'')+it.cat;
+    el.querySelector('.lcheck').onclick=()=>{
+      const arr=datos[clave(hoy)];const t=arr.find(x=>x.id===it.id);
+      if(t){t.done=!t.done;guardar();pintarLateral();render();}
+    };
+    cont.appendChild(el);
+  });
+}
+
+function pintarBloc(){
+  const cont=document.getElementById('blocLista');cont.innerHTML='';
+  if(!bloc.length){cont.innerHTML='<div class="bloc-vacio">Sin notas. Anota algo arriba.</div>';return}
+  bloc.forEach(n=>{
+    const el=document.createElement('div');el.className='bloc-item';
+    el.innerHTML='<div class="btxt"></div><div class="bdel">&times;</div>';
+    el.querySelector('.btxt').textContent=n.txt;
+    el.querySelector('.bdel').onclick=()=>{bloc=bloc.filter(x=>x.id!==n.id);guardarBloc();pintarBloc()};
+    cont.appendChild(el);
+  });
+}
+function agregarBloc(){
+  const inp=document.getElementById('blocInput');
+  const v=inp.value.trim();
+  if(!v){inp.focus();return}
+  bloc.unshift({id:Date.now()+''+Math.random().toString(36).slice(2,5),txt:v});
+  guardarBloc();inp.value='';pintarBloc();inp.focus();
+}
+
+function abrir(d){
+  diaSel=clave(d);
+  document.getElementById('fechaT').textContent=d.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'});
+  const nd=document.getElementById('notaDia');
+  nd.value=notas[diaSel]||'';
+  document.getElementById('notaEstado').textContent='';
+  pintarLista();
+  document.getElementById('iTit').value='';
+  document.getElementById('iNota').value='';
+  document.getElementById('iHora').value='';
+  document.getElementById('overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('iTit').focus(),50);
+}
+function guardarNotaDia(){
+  if(!diaSel)return;
+  const v=document.getElementById('notaDia').value;
+  if(v.trim())notas[diaSel]=v;else delete notas[diaSel];
+  guardarNotas();
+  const est=document.getElementById('notaEstado');
+  est.textContent='Guardado ✓';
+  clearTimeout(notaTimer);
+  notaTimer=setTimeout(()=>{est.textContent=''},1500);
+}
+function cerrar(){document.getElementById('overlay').classList.remove('open');diaSel=null;render();pintarLateral()}
+
+function ordenar(items){
+  const o={alta:0,media:1,baja:2};
+  return items.slice().sort((a,b)=>{
+    if(a.done!==b.done)return a.done?1:-1;
+    if(o[a.pri]!==o[b.pri])return o[a.pri]-o[b.pri];
+    return (a.hora||'99').localeCompare(b.hora||'99');
+  });
+}
+
+function pintarLista(){
+  const cont=document.getElementById('lista');cont.innerHTML='';
+  const items=ordenar(datos[diaSel]||[]);
+  if(!items.length){cont.innerHTML='<div class="vacio">Sin pendientes este día. Agrega uno abajo.</div>';return}
+  items.forEach(it=>{
+    const el=document.createElement('div');
+    el.className='item '+it.pri+(it.done?' done':'');
+    el.innerHTML=
+      '<div class="check">'+(it.done?'&check;':'')+'</div>'+
+      '<div class="cont">'+
+        '<div class="tit"></div>'+
+        (it.nota?'<div class="nota"></div>':'')+
+        '<div class="meta">'+
+          '<span class="tag"></span>'+
+          (it.hora?'<span class="hora"></span>':'')+
+          '<span class="pri-lbl"></span>'+
+        '</div>'+
+      '</div>'+
+      '<div class="del">&times;</div>';
+    el.querySelector('.tit').textContent=it.tit;
+    if(it.nota)el.querySelector('.nota').textContent=it.nota;
+    el.querySelector('.tag').textContent=it.cat;
+    if(it.hora)el.querySelector('.hora').textContent=it.hora;
+    el.querySelector('.pri-lbl').textContent='Prioridad '+it.pri;
+    el.querySelector('.check').onclick=()=>{it.done=!it.done;guardar();pintarLista()};
+    el.querySelector('.del').onclick=()=>{datos[diaSel]=datos[diaSel].filter(x=>x.id!==it.id);if(!datos[diaSel].length)delete datos[diaSel];guardar();pintarLista()};
+    cont.appendChild(el);
+  });
+}
+
+function agregar(){
+  const tit=document.getElementById('iTit').value.trim();
+  if(!tit){document.getElementById('iTit').focus();return}
+  if(!datos[diaSel])datos[diaSel]=[];
+  datos[diaSel].push({
+    id:Date.now()+''+Math.random().toString(36).slice(2,6),
+    tit,
+    nota:document.getElementById('iNota').value.trim(),
+    pri:document.getElementById('iPri').value,
+    hora:document.getElementById('iHora').value,
+    cat:document.getElementById('iCat').value,
+    done:false
+  });
+  guardar();
+  document.getElementById('iTit').value='';
+  document.getElementById('iNota').value='';
+  document.getElementById('iHora').value='';
+  pintarLista();
+  pintarLateral();
+  document.getElementById('iTit').focus();
+}
+
+// Bienvenida del día
+function bienvenida(){
+  const hoy=new Date();
+  const h=hoy.getHours();
+  const saludo=h<12?'Buenos días':h<19?'Buenas tardes':'Buenas noches';
+  document.getElementById('bSaludo').textContent=saludo;
+  document.getElementById('bFecha').textContent=hoy.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const items=ordenar((datos[clave(hoy)]||[]).filter(x=>!x.done));
+  const cont=document.getElementById('bLista');cont.innerHTML='';
+  if(!items.length){
+    cont.innerHTML='<div class="nada">No tienes pendientes para hoy. Día despejado.</div>';
+  }else{
+    const enc=document.createElement('div');
+    enc.style.cssText='font-weight:600;color:var(--verde);margin-bottom:2px;display:block';
+    enc.textContent='Tienes '+items.length+(items.length===1?' pendiente para hoy:':' pendientes para hoy:');
+    cont.appendChild(enc);
+    items.forEach(it=>{
+      const fila=document.createElement('div');
+      fila.innerHTML='<span class="punto '+it.pri+'"></span><span></span>';
+      fila.querySelector('span:last-child').textContent=(it.hora?it.hora+' · ':'')+it.tit+' ('+it.cat+')';
+      cont.appendChild(fila);
+    });
+  }
+  document.getElementById('ovBienv').classList.add('open');
+}
+function cerrarBienv(){document.getElementById('ovBienv').classList.remove('open')}
+
+// Eventos
+document.getElementById('prev').onclick=()=>{vista.setMonth(vista.getMonth()-1);render()};
+document.getElementById('next').onclick=()=>{vista.setMonth(vista.getMonth()+1);render()};
+document.getElementById('hoy').onclick=()=>{vista=new Date();vista.setDate(1);render()};
+document.getElementById('cerrar').onclick=()=>{guardarNotaDia();cerrar()};
+document.getElementById('overlay').onclick=e=>{if(e.target.id==='overlay'){guardarNotaDia();cerrar()}};
+document.getElementById('add').onclick=agregar;
+document.getElementById('latAdd').onclick=()=>abrir(new Date());
+document.getElementById('blocAdd').onclick=agregarBloc;
+document.getElementById('blocInput').addEventListener('keydown',e=>{if(e.key==='Enter')agregarBloc()});
+document.getElementById('iTit').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey)agregar()});
+document.getElementById('notaDia').addEventListener('input',guardarNotaDia);
+document.getElementById('notaDia').addEventListener('blur',guardarNotaDia);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(diaSel){guardarNotaDia();cerrar()}cerrarBienv()}});
+
+document.getElementById('cerrarB').onclick=cerrarBienv;
+document.getElementById('ovBienv').onclick=e=>{if(e.target.id==='ovBienv')cerrarBienv()};
+document.getElementById('bVer').onclick=()=>{cerrarBienv();abrir(new Date())};
+document.getElementById('bAdd').onclick=()=>{cerrarBienv();abrir(new Date())};
+
+document.getElementById('export').onclick=()=>{
+  const paquete={pendientes:datos,notas:notas,bloc:bloc};
+  const blob=new Blob([JSON.stringify(paquete,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='agenda_'+clave(new Date())+'.json';a.click();
+};
+document.getElementById('import').onclick=()=>document.getElementById('fileImp').click();
+document.getElementById('fileImp').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{try{
+    const d=JSON.parse(r.result);
+    if(d&&d.pendientes){datos=d.pendientes;notas=d.notas||{};bloc=d.bloc||[];}
+    else{datos=d;}
+    guardar();guardarNotas();guardarBloc();render();pintarLateral();pintarBloc();alert('Datos importados.');
+  }catch(err){alert('Archivo no válido.')}};
+  r.readAsText(f);
+};
+
+// Arranque: frase + calendario + lateral + bienvenida si es un día nuevo
+pintarLatin();
+render();
+pintarLateral();
+pintarBloc();
+const hoyClave=clave(new Date());
+if(localStorage.getItem(VISTO)!==hoyClave){
+  bienvenida();
+  localStorage.setItem(VISTO,hoyClave);
+}
+</script>
+</body>
+</html>
