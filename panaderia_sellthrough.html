@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14110F">
+<title>Sell-Through · Panadería EGO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --masa:#14110F; --horno:#1E1916; --charola:#272019;
+  --miga:#EDE6DC; --ceniza:#8F857C; --linea:#332A24;
+  --brasa:#E8912D; --verde:#4FB477; --rojo:#E05B4B;
+  --display:'Bricolage Grotesque',system-ui,sans-serif;
+  --ui:'Instrument Sans',system-ui,sans-serif;
+  --tape:88px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--masa); color:var(--miga); font-family:var(--ui);
+  font-size:16px; line-height:1.4; overscroll-behavior-y:contain;
+  padding-bottom:calc(var(--tape) + env(safe-area-inset-bottom));
+}
+button,input,select,textarea{font:inherit;color:inherit}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* ---------- Encabezado ---------- */
+header{
+  position:sticky; top:0; z-index:30; background:var(--masa);
+  border-bottom:1px solid var(--linea); padding:12px 16px 10px;
+  padding-top:calc(12px + env(safe-area-inset-top));
+}
+.marca{display:flex;align-items:baseline;gap:8px}
+.marca h1{
+  font-family:var(--display); font-weight:800; font-size:19px;
+  margin:0; letter-spacing:-.02em;
+}
+.marca span{font-size:11px;color:var(--ceniza);letter-spacing:.14em;text-transform:uppercase}
+.contexto{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.contexto input,.contexto select{
+  background:var(--horno); border:1px solid var(--linea); border-radius:9px;
+  padding:9px 10px; flex:1 1 0; min-width:0; font-size:14px;
+}
+.contexto input[type=date]{max-width:150px}
+
+/* ---------- Navegación ---------- */
+nav{display:flex;gap:4px;overflow-x:auto;padding:10px 16px 0;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{
+  background:none;border:none;padding:8px 2px;margin-right:16px;
+  color:var(--ceniza); font-size:14px; font-weight:500; white-space:nowrap;
+  border-bottom:2px solid transparent; cursor:pointer;
+}
+nav button[aria-current=true]{color:var(--miga);border-bottom-color:var(--brasa)}
+
+main{padding:16px}
+.vista{display:none}
+.vista.on{display:block}
+h2{font-family:var(--display);font-weight:600;font-size:15px;margin:0 0 4px;letter-spacing:-.01em}
+.pista{color:var(--ceniza);font-size:13px;margin:0 0 16px}
+
+/* ---------- Filas de captura ---------- */
+.grupo{
+  font-family:var(--display); font-size:11px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--ceniza);
+  margin:22px 0 8px; padding-bottom:6px; border-bottom:1px solid var(--linea);
+}
+.grupo:first-child{margin-top:0}
+.fila{
+  position:relative; display:flex; align-items:center; gap:10px;
+  background:var(--horno); border:1px solid var(--linea); border-radius:12px;
+  padding:10px 10px 10px 14px; margin-bottom:7px; overflow:hidden;
+}
+/* firma: el borde izquierdo se "hornea" conforme sube la cantidad */
+.fila::before{
+  content:''; position:absolute; left:0; top:0; bottom:0; width:3px;
+  background:var(--brasa); transform:scaleY(var(--llenado,0));
+  transform-origin:bottom; transition:transform .25s ease;
+}
+.fila .nom{flex:1;min-width:0;font-size:14px;line-height:1.25}
+.fila .nom small{display:block;color:var(--ceniza);font-size:11px;margin-top:2px}
+.paso{
+  width:44px;height:44px;flex:none;border-radius:10px;
+  background:var(--charola);border:1px solid var(--linea);
+  font-size:22px;font-weight:500;display:grid;place-items:center;cursor:pointer;
+}
+.paso:active{background:var(--brasa);color:var(--masa);border-color:var(--brasa)}
+.fila input.qty{
+  width:62px;flex:none;text-align:center;background:transparent;border:none;
+  font-family:var(--display);font-weight:600;font-size:26px;
+  font-variant-numeric:tabular-nums;padding:0;
+}
+.fila input.qty:focus{outline:2px solid var(--brasa);outline-offset:2px;border-radius:8px}
+input[type=number]{-moz-appearance:textfield}
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+
+/* ---------- Cinta inferior (firma) ---------- */
+.cinta{
+  position:fixed;left:0;right:0;bottom:0;z-index:40;
+  background:var(--horno);border-top:1px solid var(--linea);
+  padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+  display:flex;align-items:center;gap:12px;
+}
+.cinta .resumen{flex:1;min-width:0}
+.cinta .big{
+  font-family:var(--display);font-weight:800;font-size:24px;
+  font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1;
+}
+.cinta .sub{font-size:11px;color:var(--ceniza);margin-top:3px;
+  letter-spacing:.1em;text-transform:uppercase}
+.guardar{
+  flex:none;background:var(--brasa);color:#1A1206;border:none;border-radius:11px;
+  padding:14px 22px;font-weight:600;font-size:15px;cursor:pointer;
+}
+.guardar:disabled{opacity:.4}
+
+/* ---------- Tablero ---------- */
+.rango{display:flex;gap:6px;margin-bottom:16px}
+.rango button{
+  flex:1;background:var(--horno);border:1px solid var(--linea);border-radius:9px;
+  padding:9px 4px;font-size:13px;color:var(--ceniza);cursor:pointer;
+}
+.rango button[aria-pressed=true]{background:var(--charola);color:var(--miga);border-color:var(--brasa)}
+.tarjetas{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:20px}
+.tarjeta{background:var(--horno);border:1px solid var(--linea);border-radius:12px;padding:13px}
+.tarjeta .k{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ceniza)}
+.tarjeta .v{font-family:var(--display);font-weight:800;font-size:27px;
+  font-variant-numeric:tabular-nums;letter-spacing:-.02em;margin-top:5px;line-height:1}
+.tarjeta.ancha{grid-column:1/-1}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{
+  text-align:right;font-weight:500;font-size:10px;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--ceniza);padding:0 0 8px;
+  border-bottom:1px solid var(--linea);
+}
+th:first-child{text-align:left}
+td{padding:9px 0;border-bottom:1px solid var(--linea);text-align:right;
+  font-variant-numeric:tabular-nums}
+td:first-child{text-align:left;font-variant-numeric:normal}
+.st{font-weight:600}
+.st.ok{color:var(--verde)} .st.mid{color:var(--brasa)} .st.mal{color:var(--rojo)}
+
+/* ---------- Cuaderno ---------- */
+textarea{
+  width:100%;background:var(--horno);border:1px solid var(--linea);
+  border-radius:12px;padding:13px;min-height:96px;resize:vertical;font-size:15px;
+}
+.nota{background:var(--horno);border:1px solid var(--linea);border-left:3px solid var(--brasa);
+  border-radius:10px;padding:12px 14px;margin-bottom:8px}
+.nota .meta{font-size:11px;color:var(--ceniza);margin-bottom:5px;
+  letter-spacing:.08em;text-transform:uppercase}
+.nota p{margin:0;font-size:14px;white-space:pre-wrap}
+
+/* ---------- Catálogo ---------- */
+.cat{display:grid;grid-template-columns:1fr 74px 74px 40px;gap:7px;align-items:center;
+  background:var(--horno);border:1px solid var(--linea);border-radius:10px;
+  padding:9px 11px;margin-bottom:7px}
+.cat input{background:var(--charola);border:1px solid var(--linea);border-radius:7px;
+  padding:7px;font-size:13px;width:100%;font-variant-numeric:tabular-nums;text-align:right}
+.cat input.nom{text-align:left;font-variant-numeric:normal}
+.cat .encab{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ceniza)}
+.quitar{background:none;border:none;color:var(--ceniza);font-size:19px;cursor:pointer}
+.fantasma{background:var(--horno);border:1px dashed var(--linea);color:var(--miga);
+  border-radius:11px;padding:13px;width:100%;cursor:pointer;font-size:14px}
+
+/* ---------- Estados ---------- */
+.aviso{background:var(--horno);border:1px solid var(--linea);border-left:3px solid var(--rojo);
+  border-radius:10px;padding:14px;font-size:14px;margin-bottom:14px}
+.aviso b{display:block;margin-bottom:4px;font-family:var(--display)}
+.vacio{text-align:center;color:var(--ceniza);padding:40px 20px;font-size:14px}
+#brindis{
+  position:fixed;left:16px;right:16px;bottom:calc(var(--tape) + 16px);z-index:60;
+  background:var(--miga);color:var(--masa);border-radius:11px;padding:13px 16px;
+  font-size:14px;font-weight:500;opacity:0;transform:translateY(8px);
+  transition:opacity .2s,transform .2s;pointer-events:none;
+}
+#brindis.on{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+:focus-visible{outline:2px solid var(--brasa);outline-offset:2px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="marca">
+    <h1>Sell-Through</h1><span>Panadería EGO</span>
+  </div>
+  <div class="contexto">
+    <input type="date" id="fecha">
+    <select id="turno">
+      <option>AM</option><option>Intermedio</option><option>PM</option>
+    </select>
+    <input type="text" id="persona" placeholder="Tu nombre" autocomplete="name">
+  </div>
+</header>
+
+<nav>
+  <button data-ir="produccion" aria-current="true">Producción</button>
+  <button data-ir="cierre">Cierre</button>
+  <button data-ir="tablero">Tablero</button>
+  <button data-ir="cuaderno">Cuaderno</button>
+  <button data-ir="catalogo">Catálogo</button>
+</nav>
+
+<main>
+  <section class="vista on" id="v-produccion">
+    <h2>Lo que saliste del horno</h2>
+    <p class="pista">Cuenta las piezas que produjiste en tu turno. Puedes volver y corregir.</p>
+    <div id="lista-produccion"></div>
+  </section>
+
+  <section class="vista" id="v-cierre">
+    <h2>Lo que quedó al cerrar</h2>
+    <p class="pista">Cuenta la pieza que no se vendió. Lo demás lo calcula la app.</p>
+    <div id="lista-cierre"></div>
+  </section>
+
+  <section class="vista" id="v-tablero">
+    <h2>Cómo vamos</h2>
+    <p class="pista">Venta = producción menos merma.</p>
+    <div class="rango">
+      <button data-rango="dia" aria-pressed="true">Día</button>
+      <button data-rango="semana">7 días</button>
+      <button data-rango="mes">Mes</button>
+    </div>
+    <div id="tablero-cuerpo"></div>
+  </section>
+
+  <section class="vista" id="v-cuaderno">
+    <h2>Cuaderno de turno</h2>
+    <p class="pista">Lo que pasó y no cabe en un número.</p>
+    <textarea id="nota-txt" placeholder="Se fue la luz 40 min, se atrasó la segunda hornada…"></textarea>
+    <button class="guardar" id="nota-add" style="width:100%;margin-top:10px">Guardar nota</button>
+    <div id="notas-lista" style="margin-top:22px"></div>
+  </section>
+
+  <section class="vista" id="v-catalogo">
+    <h2>Catálogo</h2>
+    <p class="pista">Costo y precio por pieza. De aquí sale el dinero del tablero.</p>
+    <div class="cat" style="background:none;border:none;padding:0 11px">
+      <span class="encab">Producto</span><span class="encab" style="text-align:right">Costo</span>
+      <span class="encab" style="text-align:right">Precio</span><span></span>
+    </div>
+    <div id="catalogo-lista"></div>
+    <button class="fantasma" id="cat-add" style="margin-top:8px">+ Agregar producto</button>
+    <button class="guardar" id="cat-save" style="width:100%;margin-top:10px">Guardar catálogo</button>
+  </section>
+</main>
+
+<div class="cinta">
+  <div class="resumen">
+    <div class="big tnum" id="cinta-num">—</div>
+    <div class="sub" id="cinta-lbl">Cargando</div>
+  </div>
+  <button class="guardar" id="btn-guardar">Guardar</button>
+</div>
+
+<div id="brindis"></div>
+
+<script>
+/* ══════════════════════════════════════════════════════════
+   CONFIGURACIÓN — pega aquí tu anon key de Supabase
+   ══════════════════════════════════════════════════════════ */
+const SB_URL = 'https://dlzkmwupqeaqudiwlltk.supabase.co';
+const SB_KEY = 'PEGA_AQUI_TU_ANON_KEY';
+const PIN_CATALOGO = '2026';           // para editar costos y precios
+/* ══════════════════════════════════════════════════════════ */
+
+const $  = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const hoy = () => new Date(Date.now() - new Date().getTimezoneOffset()*6e4)
+                   .toISOString().slice(0,10);
+const pesos = n => '$' + Math.round(n).toLocaleString('es-MX');
+
+async function sb(path, opts = {}) {
+  const r = await fetch(SB_URL + '/rest/v1/' + path, {
+    ...opts,
+    headers: {
+      apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY,
+      'Content-Type': 'application/json', ...(opts.headers || {})
+    }
+  });
+  if (!r.ok) throw new Error(await r.text());
+  const t = await r.text();
+  return t ? JSON.parse(t) : null;
+}
+
+let SKUS = [], VISTA = 'produccion', RANGO = 'dia';
+const buf = { produccion: {}, cierre: {} };   // sku_id -> cantidad
+
+function brindis(msg) {
+  const b = $('#brindis'); b.textContent = msg; b.classList.add('on');
+  clearTimeout(b._t); b._t = setTimeout(() => b.classList.remove('on'), 2600);
+}
+function error(msg) {
+  $('main').insertAdjacentHTML('afterbegin',
+    `<div class="aviso"><b>No se pudo conectar</b>${msg}</div>`);
+}
+
+/* ---------- borrador local: nada se pierde si falla el wifi ---------- */
+const claveDraft = () => `pan:${$('#fecha').value}:${$('#turno').value}`;
+function guardarDraft(){ try{ localStorage.setItem(claveDraft(), JSON.stringify(buf)); }catch(e){} }
+function leerDraft(){
+  try{ const d = JSON.parse(localStorage.getItem(claveDraft()) || 'null');
+       if (d){ buf.produccion = d.produccion || {}; buf.cierre = d.cierre || {}; }
+  }catch(e){}
+}
+
+/* ---------- carga ---------- */
+async function cargarSkus() {
+  SKUS = await sb('pan_skus?activo=eq.true&order=tipo.desc,orden.asc,nombre.asc');
+}
+
+async function cargarDia() {
+  const f = $('#fecha').value, t = $('#turno').value;
+  buf.produccion = {}; buf.cierre = {};
+  const movs = await sb(`pan_movimientos?fecha=eq.${f}&turno=eq.${encodeURIComponent(t)}`);
+  movs.forEach(m => { buf[m.tipo === 'merma' ? 'cierre' : 'produccion'][m.sku_id] = m.cantidad; });
+  leerDraft();
+  pintarCaptura();
+}
+
+/* ---------- pantallas de captura ---------- */
+function pintarCaptura() {
+  ['produccion','cierre'].forEach(modo => {
+    const cont = $('#lista-' + modo);
+    let html = '', tipoActual = null;
+    SKUS.forEach(s => {
+      if (s.tipo !== tipoActual) {
+        tipoActual = s.tipo;
+        html += `<div class="grupo">${tipoActual === 'Salado' ? 'Pan salado' : 'Pan dulce'}</div>`;
+      }
+      const q = buf[modo][s.id] || 0;
+      const pie = modo === 'cierre'
+        ? `merma ${pesos(q * s.costo)}`
+        : `costo ${pesos(s.costo)} · vende ${pesos(s.precio)}`;
+      html += `
+        <div class="fila" data-sku="${s.id}" data-modo="${modo}"
+             style="--llenado:${Math.min(q/24,1).toFixed(3)}">
+          <div class="nom">${s.nombre}<small>${pie}</small></div>
+          <button class="paso" data-d="-1" aria-label="Quitar una pieza de ${s.nombre}">−</button>
+          <input class="qty tnum" type="number" inputmode="numeric" min="0"
+                 value="${q}" aria-label="Piezas de ${s.nombre}">
+          <button class="paso" data-d="1" aria-label="Sumar una pieza de ${s.nombre}">+</button>
+        </div>`;
+    });
+    cont.innerHTML = html || '<div class="vacio">No hay productos activos.<br>Agrégalos en Catálogo.</div>';
+  });
+  pintarCinta();
+}
+
+function fijar(modo, id, val) {
+  const s = SKUS.find(x => x.id === id);
+  const q = Math.max(0, val | 0);
+  buf[modo][id] = q;
+  const fila = document.querySelector(`.fila[data-sku="${id}"][data-modo="${modo}"]`);
+  fila.querySelector('.qty').value = q;
+  fila.style.setProperty('--llenado', Math.min(q / 24, 1).toFixed(3));
+  if (modo === 'cierre') fila.querySelector('small').textContent = 'merma ' + pesos(q * s.costo);
+  guardarDraft(); pintarCinta();
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('.paso'); if (!b) return;
+  const fila = b.closest('.fila'), id = +fila.dataset.sku, modo = fila.dataset.modo;
+  fijar(modo, id, (buf[modo][id] || 0) + (+b.dataset.d));
+});
+document.addEventListener('input', e => {
+  if (!e.target.classList.contains('qty')) return;
+  const fila = e.target.closest('.fila');
+  fijar(fila.dataset.modo, +fila.dataset.sku, +e.target.value);
+});
+
+/* ---------- cinta inferior ---------- */
+function pintarCinta() {
+  const num = $('#cinta-num'), lbl = $('#cinta-lbl'), btn = $('#btn-guardar');
+  btn.style.display = ''; btn.disabled = false;
+
+  if (VISTA === 'produccion' || VISTA === 'cierre') {
+    const modo = VISTA;
+    const piezas = Object.values(buf[modo]).reduce((a, b) => a + b, 0);
+    num.textContent = piezas.toLocaleString('es-MX');
+    if (modo === 'cierre') {
+      const $$$ = SKUS.reduce((a, s) => a + (buf.cierre[s.id] || 0) * s.costo, 0);
+      lbl.textContent = `piezas de merma · ${pesos($$$)}`;
+    } else lbl.textContent = 'piezas producidas';
+    btn.textContent = 'Guardar';
+  } else if (VISTA === 'catalogo') {
+    num.textContent = $$('#catalogo-lista .cat').length;
+    lbl.textContent = 'productos'; btn.style.display = 'none';
+  } else {
+    num.textContent = '—'; lbl.textContent = VISTA === 'cuaderno' ? 'Cuaderno' : 'Tablero';
+    btn.style.display = 'none';
+  }
+}
+
+/* ---------- guardar captura ---------- */
+$('#btn-guardar').addEventListener('click', async () => {
+  const modo = VISTA; if (modo !== 'produccion' && modo !== 'cierre') return;
+  const btn = $('#btn-guardar'); btn.disabled = true; btn.textContent = 'Guardando…';
+  const filas = SKUS.map(s => ({
+    fecha: $('#fecha').value,
+    sku_id: s.id,
+    tipo: modo === 'cierre' ? 'merma' : 'produccion',
+    turno: $('#turno').value,
+    cantidad: buf[modo][s.id] || 0,
+    persona: $('#persona').value.trim() || null
+  }));
+  try {
+    await sb('pan_movimientos', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify(filas)
+    });
+    localStorage.removeItem(claveDraft());
+    brindis(modo === 'cierre' ? 'Cierre guardado' : 'Producción guardada');
+  } catch (e) {
+    brindis('No se guardó. Quedó en el teléfono, vuelve a intentar.');
+  }
+  btn.disabled = false; pintarCinta();
+});
+
+/* ---------- tablero ---------- */
+function rangoFechas() {
+  const f = $('#fecha').value;
+  if (RANGO === 'dia') return [f, f];
+  if (RANGO === 'semana') {
+    const d = new Date(f + 'T12:00'); d.setDate(d.getDate() - 6);
+    return [d.toISOString().slice(0, 10), f];
+  }
+  return [f.slice(0, 8) + '01', f];
+}
+
+async function pintarTablero() {
+  const [a, b] = rangoFechas();
+  const cont = $('#tablero-cuerpo');
+  cont.innerHTML = '<div class="vacio">Cargando…</div>';
+  const [movs, ventas] = await Promise.all([
+    sb(`pan_movimientos?fecha=gte.${a}&fecha=lte.${b}`),
+    sb(`pan_ventas?fecha=gte.${a}&fecha=lte.${b}`)
+  ]);
+
+  const filas = SKUS.map(s => {
+    const prod  = movs.filter(m => m.sku_id === s.id && m.tipo === 'produccion')
+                      .reduce((x, m) => x + m.cantidad, 0);
+    const merma = movs.filter(m => m.sku_id === s.id && m.tipo === 'merma')
+                      .reduce((x, m) => x + m.cantidad, 0);
+    const reales = ventas.filter(v => v.sku_id === s.id).reduce((x, v) => x + v.cantidad, 0);
+    const vend = reales || Math.max(0, prod - merma);
+    return { s, prod, merma, vend,
+             st: prod ? vend / prod : null,
+             ingreso: vend * s.precio, perdida: merma * s.costo };
+  }).filter(f => f.prod || f.merma);
+
+  if (!filas.length) {
+    cont.innerHTML = '<div class="vacio">Todavía no hay nada capturado en este periodo.</div>';
+    return pintarCinta();
+  }
+
+  const T = filas.reduce((t, f) => ({
+    prod: t.prod + f.prod, merma: t.merma + f.merma, vend: t.vend + f.vend,
+    ingreso: t.ingreso + f.ingreso, perdida: t.perdida + f.perdida
+  }), { prod: 0, merma: 0, vend: 0, ingreso: 0, perdida: 0 });
+  const stTotal = T.prod ? T.vend / T.prod : 0;
+
+  const clase = v => v === null ? '' : v >= .9 ? 'ok' : v >= .75 ? 'mid' : 'mal';
+  const pct = v => v === null ? '—' : Math.round(v * 100) + '%';
+
+  filas.sort((x, y) => (x.st ?? 2) - (y.st ?? 2));
+
+  cont.innerHTML = `
+    <div class="tarjetas">
+      <div class="tarjeta ancha">
+        <div class="k">Sell-through del periodo</div>
+        <div class="v st ${clase(stTotal)}">${pct(stTotal)}</div>
+      </div>
+      <div class="tarjeta"><div class="k">Producido</div><div class="v tnum">${T.prod.toLocaleString('es-MX')}</div></div>
+      <div class="tarjeta"><div class="k">Vendido</div><div class="v tnum">${T.vend.toLocaleString('es-MX')}</div></div>
+      <div class="tarjeta"><div class="k">Merma</div><div class="v tnum" style="color:var(--rojo)">${T.merma.toLocaleString('es-MX')}</div></div>
+      <div class="tarjeta"><div class="k">Merma en dinero</div><div class="v tnum" style="color:var(--rojo)">${pesos(T.perdida)}</div></div>
+      <div class="tarjeta ancha"><div class="k">Venta estimada</div><div class="v tnum">${pesos(T.ingreso)}</div></div>
+    </div>
+    <div class="grupo">Peor sell-through primero</div>
+    <table>
+      <thead><tr><th>Producto</th><th>Prod</th><th>Vend</th><th>Merma</th><th>S-T</th><th>Merma $</th></tr></thead>
+      <tbody>${filas.map(f => `
+        <tr>
+          <td>${f.s.nombre}</td>
+          <td>${f.prod}</td><td>${f.vend}</td><td>${f.merma}</td>
+          <td class="st ${clase(f.st)}">${pct(f.st)}</td>
+          <td>${pesos(f.perdida)}</td>
+        </tr>`).join('')}</tbody>
+    </table>`;
+  pintarCinta();
+}
+
+$$('.rango button').forEach(b => b.addEventListener('click', () => {
+  RANGO = b.dataset.rango;
+  $$('.rango button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  pintarTablero();
+}));
+
+/* ---------- cuaderno ---------- */
+async function pintarNotas() {
+  const cont = $('#notas-lista');
+  const notas = await sb('pan_notas?order=creado_en.desc&limit=40');
+  cont.innerHTML = notas.length ? notas.map(n => `
+    <div class="nota">
+      <div class="meta">${n.fecha} · ${n.turno || 's/turno'}${n.persona ? ' · ' + n.persona : ''}</div>
+      <p>${n.texto.replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]))}</p>
+    </div>`).join('') : '<div class="vacio">Aún no hay notas.</div>';
+}
+
+$('#nota-add').addEventListener('click', async () => {
+  const t = $('#nota-txt').value.trim(); if (!t) return;
+  await sb('pan_notas', {
+    method: 'POST', headers: { Prefer: 'return=minimal' },
+    body: JSON.stringify([{ fecha: $('#fecha').value, turno: $('#turno').value,
+                            persona: $('#persona').value.trim() || null, texto: t }])
+  });
+  $('#nota-txt').value = ''; brindis('Nota guardada'); pintarNotas();
+});
+
+/* ---------- catálogo ---------- */
+function filaCat(s = { nombre: '', costo: '', precio: '', tipo: 'Dulce', id: null }) {
+  return `<div class="cat" data-id="${s.id ?? ''}">
+    <input class="nom" value="${(s.nombre || '').replace(/"/g, '&quot;')}" placeholder="Nombre">
+    <input class="costo" type="number" step="0.01" inputmode="decimal" value="${s.costo}" placeholder="0">
+    <input class="precio" type="number" step="0.01" inputmode="decimal" value="${s.precio}" placeholder="0">
+    <button class="quitar" title="Desactivar">×</button>
+  </div>`;
+}
+function pintarCatalogo() {
+  $('#catalogo-lista').innerHTML = SKUS.map(filaCat).join('');
+}
+$('#cat-add').addEventListener('click', () => {
+  $('#catalogo-lista').insertAdjacentHTML('beforeend', filaCat()); pintarCinta();
+});
+$('#catalogo-lista').addEventListener('click', e => {
+  if (e.target.classList.contains('quitar')) { e.target.closest('.cat').remove(); pintarCinta(); }
+});
+$('#cat-save').addEventListener('click', async () => {
+  if (prompt('PIN para guardar el catálogo:') !== PIN_CATALOGO) return brindis('PIN incorrecto');
+  const vivos = [];
+  $$('#catalogo-lista .cat').forEach((row, i) => {
+    const nombre = row.querySelector('.nom').value.trim(); if (!nombre) return;
+    const id = row.dataset.id;
+    vivos.push({ ...(id ? { id: +id } : {}), nombre, tipo: (SKUS.find(s => s.id == id) || {}).tipo || 'Dulce',
+      costo: +row.querySelector('.costo').value || 0,
+      precio: +row.querySelector('.precio').value || 0,
+      activo: true, orden: i });
+  });
+  const quitados = SKUS.filter(s => !vivos.some(v => v.id === s.id))
+                       .map(s => ({ ...s, activo: false }));
+  try {
+    await sb('pan_skus', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify([...vivos, ...quitados])
+    });
+    brindis('Catálogo guardado');
+    await cargarSkus(); pintarCatalogo(); await cargarDia();
+  } catch (e) { brindis('No se guardó el catálogo'); }
+});
+
+/* ---------- navegación ---------- */
+$$('nav button').forEach(b => b.addEventListener('click', () => {
+  VISTA = b.dataset.ir;
+  $$('nav button').forEach(x => x.setAttribute('aria-current', x === b));
+  $$('.vista').forEach(v => v.classList.toggle('on', v.id === 'v-' + VISTA));
+  window.scrollTo(0, 0);
+  if (VISTA === 'tablero') pintarTablero();
+  if (VISTA === 'cuaderno') pintarNotas();
+  if (VISTA === 'catalogo') pintarCatalogo();
+  pintarCinta();
+}));
+
+['#fecha', '#turno'].forEach(sel => $(sel).addEventListener('change', async () => {
+  localStorage.setItem('pan:turno', $('#turno').value);
+  await cargarDia();
+  if (VISTA === 'tablero') pintarTablero();
+}));
+$('#persona').addEventListener('change', () =>
+  localStorage.setItem('pan:persona', $('#persona').value));
+
+/* ---------- arranque ---------- */
+(async function () {
+  $('#fecha').value = hoy();
+  $('#persona').value = localStorage.getItem('pan:persona') || '';
+  $('#turno').value = localStorage.getItem('pan:turno') || 'AM';
+  if (SB_KEY.startsWith('PEGA_AQUI')) {
+    return error('Falta la anon key de Supabase en la línea de configuración del archivo.');
+  }
+  try {
+    await cargarSkus();
+    await cargarDia();
+  } catch (e) {
+    error('Revisa la URL y la anon key, y que hayas corrido el SQL en Supabase.');
+  }
+})();
+</script>
+</body>
+</html>
