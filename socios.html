@@ -1037,7 +1037,7 @@ function conf(t,x,fn){$("cf-ok").style.display="";$("cf-t").textContent=t;$("cf-
 var FR=[["Una vida sin examen no merece ser vivida.","Sócrates","en la Apología de Platón"],["No es que tengamos poco tiempo, sino que perdemos mucho.","Séneca","De la brevedad de la vida"],["Mientras se aplaza, la vida pasa.","Séneca","Cartas a Lucilio"],["Tu mente será como tus pensamientos habituales, pues el alma se tiñe de ellos.","Marco Aurelio","Meditaciones"],["Lo que no es útil para la colmena, tampoco lo es para la abeja.","Marco Aurelio","Meditaciones"],["No nos afectan las cosas, sino la opinión que tenemos de ellas.","Epicteto","Enquiridión"],["El carácter es para el hombre su destino.","Heráclito","Fragmentos"],["Una golondrina no hace verano, ni tampoco un solo día.","Aristóteles","Ética a Nicómaco"],["El corazón tiene razones que la razón no conoce.","Blaise Pascal","Pensamientos"],["Todo lo excelente es tan difícil como raro.","Baruch Spinoza","Ética"],["Quien tiene un porqué para vivir soporta casi cualquier cómo.","Friedrich Nietzsche","El crepúsculo de los ídolos"],["Hay más cosas en el cielo y en la tierra, Horacio, de las que sueña tu filosofía.","William Shakespeare","Hamlet"],["El que lee mucho y anda mucho, ve mucho y sabe mucho.","Miguel de Cervantes","Don Quijote de la Mancha"],["Fui a los bosques porque quería vivir deliberadamente.","Henry David Thoreau","Walden"],["Todos estamos en el fango, pero algunos miramos las estrellas.","Oscar Wilde","El abanico de Lady Windermere"],["Caminante, no hay camino, se hace camino al andar.","Antonio Machado","Campos de Castilla"]],FR_OLD=[["No es que tengamos poco tiempo, sino que perdemos mucho.","Séneca","De la brevedad de la vida"],["Tu mente será como tus pensamientos habituales, pues el alma se tiñe de ellos.","Marco Aurelio","Meditaciones"],["El que lee mucho y anda mucho, ve mucho y sabe mucho.","Miguel de Cervantes","Don Quijote de la Mancha"],["Fui a los bosques porque quería vivir deliberadamente.","Henry David Thoreau","Walden"],["Todas las familias felices se parecen; cada familia infeliz lo es a su manera.","León Tolstói","Ana Karénina"],["Todos estamos en el fango, pero algunos miramos las estrellas.","Oscar Wilde","El abanico de Lady Windermere"],["No nos afectan las cosas, sino la opinión que tenemos de ellas.","Epicteto","Enquiridión"],["Caminante, no hay camino, se hace camino al andar.","Antonio Machado","Campos de Castilla"]],fi=Math.floor(Math.random()*FR.length);
 function $(i){return document.getElementById(i)}
 function m(n){return "$"+Math.round(n).toLocaleString("en-US")}
-function pre(p){return Math.round(p*(1-D))}
+function pre(p){return Math.round(p*(1000-Math.round(D*1000))/1000)}
 function fecha(d){return DIAS[d.getDay()]+" "+d.getDate()+" de "+MES[d.getMonth()]}
 function iso(d){return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2)}
 function tot(){var pz=0,t=0,pub=0;CAT.forEach(function(c,i){var q=Q[i]||0;pz+=q;t+=q*pre(c[1]);pub+=q*c[1]});return{pz:pz,t:t,pub:pub}}
@@ -1136,7 +1136,7 @@ var mtHor="1:00 a. m.",mtRng="Mes pasado",mtAnt="12 meses",mtBk=false,mtDb=38,m
 var RSP=[];
 function verRespaldo(){var r=mtRng==="Mes pasado"?rg("mes0"):mtRng==="Últimos 3 meses"?[new Date(2026,7,12),new Date(HOY)]:[new Date(2026,0,1),new Date(HOY)],P=[];
  HIST.forEach(function(p){if(p.d>=r[0]&&p.d<=r[1]&&p.e!=="Recibido")SOC.forEach(function(q,j){var v=Math.round(p.t*(p.d.getMonth()===9?q[1]:q[2]));P.push([iso(p.d),q[0],"PED-"+(200000+p.d.getMonth()*400+p.d.getDate()*37+j),Math.round(v/26),v,p.e])})});
- var N=[];["oct","nov"].forEach(function(k){if(k==="nov"&&mtRng==="Mes pasado")return;CIES[k].l.forEach(function(o){N.push([CIES[k].t.split(" · ")[0],o.n,o.pub,o.d+"%",o.t,CIES[k].c?"En curso":o.pag?"Pagada":"Por cobrar"])})});
+ var N=[];Object.keys(CIES).forEach(function(k){if(CIES[k].c&&mtRng==="Mes pasado")return;CIES[k].l.forEach(function(o){N.push([CIES[k].t.split(" · ")[0],o.n,o.pub,o.d+"%",o.t,CIES[k].c?"En curso":o.pag?"Pagada":"Por cobrar"])})});
  var G=PAGOS.map(function(p){return[p.fe,p.s,p.mes,p.mo,p.met,p.ref||"—",p.rec||"—"]});
  RSP=[["PEDIDOS",["Fecha","Socio","Folio","Piezas","Monto","Estado"],P],["NOTAS",["Mes","Socio","Valor público","Descuento","Total","Estado"],N],["PAGOS",["Fecha de pago","Socio","Nota","Monto","Forma","Referencia","Recibió"],G]];
  var tb=function(t){var f=t[2].slice(0,8);return '<div class="tit">'+t[0].charAt(0)+t[0].slice(1).toLowerCase()+' · '+t[2].length+' filas</div><div class="tj"><div class="rsp"><table><tr>'+t[1].map(function(h){return '<th>'+h+'</th>'}).join("")+'</tr>'+f.map(function(r){return '<tr>'+r.map(function(c){return '<td>'+(typeof c==="number"&&c>999?m(c):esc2(c))+'</td>'}).join("")+'</tr>'}).join("")+'</table></div>'+(t[2].length>8?'<div class="mas">… y '+(t[2].length-8)+' filas más en el archivo</div>':'')+'</div>'};
@@ -1181,9 +1181,9 @@ function fSocio(i){var o=i<0?{n:"",u:"",w:"",mail:"",act:true}:SOCIOS[i];fact=o.
    if(SOCIOS.some(function(z,k){return k!==i&&z.u===u}))return "Ese usuario ya existe. Elige otro.";
    if(i<0&&p.length<6)return "La contraseña lleva mínimo 6 caracteres.";if(i>=0&&p&&p.length<6)return "La nueva contraseña lleva mínimo 6 caracteres.";
    if(w.length<12)return "El WhatsApp lleva 52 y 10 dígitos.";if(ml&&!/^\S+@\S+\.\S+$/.test(ml))return "Revisa el correo.";
-   return function(){var d={n:n,u:u,w:w,mail:ml,act:i<0?true:fact};bit("Socios",(i<0?"Agregó al socio ":"Editó al socio ")+n);if(i<0)SOCIOS.push(d);else{SOCIOS[i]=d;if(SOC[i]){SOC[i][0]=n;CIES.oct.l[i].n=n;CIES.nov.l[i].n=n}}pSocios();pPer();pCierre()}},
-  del:i<0?null:function(){var deb=CIES.oct.l[i]&&!CIES.oct.l[i].pag;if(deb){$("fm-err").textContent="No se puede eliminar: tiene una nota por cobrar. Puedes pausarlo.";return}
-   conf("¿Seguro que deseas eliminar a este socio?",esc2(o.n)+" · se borra su acceso, no sus notas.",function(){SOCIOS.splice(i,1);if(SOC[i]){SOC.splice(i,1);CIES.oct.l.splice(i,1);CIES.nov.l.splice(i,1);ci=0}$("fm").classList.remove("on");pSocios();pPer();pCierre()})},delT:"Eliminar socio"})}
+   return function(){var d={n:n,u:u,w:w,mail:ml,act:i<0?true:fact};bit("Socios",(i<0?"Agregó al socio ":"Editó al socio ")+n);if(i<0)SOCIOS.push(d);else{SOCIOS[i]=d;if(SOC[i]){SOC[i][0]=n;if(CIES.oct){CIES.oct.l[i].n=n;CIES.nov.l[i].n=n}}}pSocios();pPer();pCierre()}},
+  del:i<0?null:function(){var deb=CIES.oct&&CIES.oct.l[i]&&!CIES.oct.l[i].pag;if(deb){$("fm-err").textContent="No se puede eliminar: tiene una nota por cobrar. Puedes pausarlo.";return}
+   conf("¿Seguro que deseas eliminar a este socio?",esc2(o.n)+" · se borra su acceso, no sus notas.",function(){SOCIOS.splice(i,1);if(SOC[i]){SOC.splice(i,1);if(CIES.oct){CIES.oct.l.splice(i,1);CIES.nov.l.splice(i,1)}ci=0}$("fm").classList.remove("on");pSocios();pPer();pCierre()})},delT:"Eliminar socio"})}
 function vPedSocio(i){var o=SOCIOS[i],q=SOC[i],r=rg("mes"),ls=q?HIST.filter(function(p){return p.d>=r[0]&&p.d<=r[1]&&p.e!=="Recibido"}):[],g=0;
  var filas=ls.map(function(p){var v=Math.round(p.t*(p.d.getMonth()===9?q[1]:q[2]));g+=v;return '<div class="fila"><div><div class="n">'+fecha(p.d)+'</div><div class="m">'+Math.round(v/26)+' piezas</div></div><div class="n" style="font-variant-numeric:tabular-nums">'+m(v)+'</div></div>'}).join("");
  form({t:"Pedidos de "+o.n,x:"Noviembre 2026",html:'<div class="gasto" style="text-align:left"><div class="v">'+m(g)+'</div><div class="l">'+ls.length+' pedidos este mes</div></div>'+(ls.length?'<div class="tj" style="text-align:left;box-shadow:none;background:var(--campo)">'+filas+'</div>':'<div class="vacio">Todavía no tiene pedidos.</div>')})}
@@ -1246,17 +1246,17 @@ function permisos(){vcBar();var lim=rol!=="dueno";if(lim&&/^(config|mant|bit)$/.
  var act=document.querySelector(".apanel.on");if(lim&&act&&/a-(config|mant|bit)/.test(act.id))atab("resumen")}
 function puede(){if(rol==="aux"){conf("Tu nivel no permite este cambio","Los auxiliares ven ventas y pedidos y registran pagos. Pide a un Gerente o al Dueño que lo haga.",null);$("cf-ok").style.display="none";return false}return true}
 function pAdmin(){pBit();permisos();pConfig();var c=cuenta();
- var IT=[],deb=CIES.oct.l.filter(function(o){return !o.pag}),dt=0;deb.forEach(function(o){dt+=o.t});
+ var IT=[],deb=window.COB_REAL?debReal():CIES.oct.l.filter(function(o){return !o.pag}),dt=0;deb.forEach(function(o){dt+=o.t});
  var nAt=window.nAtr?nAtr(c):(tarde?c.pend:0);if(nAt)IT.push({n:0,t:nAt+(nAt===1?" pedido no salió":" pedidos no salieron")+" a las 7:30",d:"Producción lleva "+(window.retrasoTxt?retrasoTxt():"20 minutos")+" de retraso. Avisa a los socios.",b:"Ver pedidos",g:"pedidos"});
  if(c.nuevo)IT.push({n:1,t:c.nuevo+(c.nuevo===1?" pedido sin aceptar":" pedidos sin aceptar"),d:"Producción todavía no lo confirma: "+PED.filter(function(p){return p.e==="nuevo"}).map(function(p){return p.c}).filter(function(x,i,a){return a.indexOf(x)===i}).join(", ")+".",b:"Revisar",g:"pedidos"});
  var aj=PED.filter(function(p){return p.aj&&!p.aj.ok});if(aj.length)IT.push({n:1,t:aj.length+(aj.length===1?" ajuste por aprobar":" ajustes por aprobar"),d:aj.map(function(p){return p.c}).filter(function(x,i,a){return a.indexOf(x)===i}).join(", ")+": producción cambió cantidades.",b:"Aprobar",g:"pedidos"});
- if(deb.length)IT.push({n:1,t:m(dt)+" por cobrar de octubre",d:deb.length+(deb.length===1?" nota sigue abierta: ":" notas siguen abiertas: ")+deb.map(function(o){return o.n}).join(", ")+".",b:"Cobrar",g:"cierre"});
+ if(deb.length)IT.push({n:1,t:m(dt)+" por cobrar"+(window.COB_REAL?debMes(deb):" de octubre"),d:deb.length+(deb.length===1?" nota sigue abierta: ":" notas siguen abiertas: ")+deb.map(function(o){return o.n}).join(", ")+".",b:"Cobrar",g:"cierre"});if(window.COB_REAL)cierreUrg(IT);
  var k0=0;ESC.forEach(function(e,i){if(MES_PAG>=e[0])k0=i});if(ESC[k0+1]&&ESC[k0+1][0]-MES_PAG<4000)IT.push({n:3,t:"Café Ejemplo está a "+m(ESC[k0+1][0]-MES_PAG)+" de subir de escalón",d:"Avísale: con un pedido más grande pasa a "+ESC[k0+1][1]+"%"+(ESC[k0+1][2]?" y recibe entrega gratis.":"."),b:"Ver socio",g:"socios"});
  var sc=SOCIOS.filter(function(o){return !o.mail});if(sc.length)IT.push({n:2,t:sc.length+(sc.length===1?" socio sin correo":" socios sin correo"),d:sc.map(function(o){return o.n}).join(", ")+": sin correo no le llega su nota mensual.",b:"Completar",g:"socios"});
  if(rol==="dueno"&&mtFo/1024>.55)IT.push({n:2,t:"Las fotos ya ocupan "+Math.round(mtFo/1024*100)+"% del espacio",d:"Descarga el respaldo y limpia el historial antes de que la app se ponga lenta.",b:"Mantenimiento",g:"mant"});
  IT.sort(function(a,b){return a.n-b.n});var NV=[["urg","Urgente"],["hoy","Hoy"],["lue","Cuando puedas"],["opo","Oportunidad"]],nu=IT.filter(function(x){return x.n===0}).length,nh=IT.filter(function(x){return x.n===1}).length,pend=nu+nh;
  $("a-hero").innerHTML='<div class="hz ad"><div><div class="tt">Lo que pide tu atención</div><div class="big">'+pend+'<small>'+(pend===1?"pendiente":"pendientes")+'</small></div><div class="sig">'+(pend?(nu?'<b class="ro">'+nu+' urgente'+(nu===1?"":"s")+'</b>'+(nh?' y ':''):'')+(nh?'<b>'+nh+' para hoy</b>':'')+'. Empieza por arriba.':'Todo en orden. No hay nada que resolver ahora.')+'</div></div>'
-  +'<div class="gano"><div>'+(window.PROD_REAL?adHero():'<b>7:30</b><span>Salida de mañana · '+PED.length+' pedidos · '+c.pz+' piezas</span>')+'</div><div><b>'+m(dt)+'</b><span>Por cobrar de octubre</span></div></div></div>';
+  +'<div class="gano"><div>'+(window.PROD_REAL?adHero():'<b>7:30</b><span>Salida de mañana · '+PED.length+' pedidos · '+c.pz+' piezas</span>')+'</div><div><b>'+m(dt)+'</b><span>Por cobrar'+(window.COB_REAL?debMes(deb):' de octubre')+'</span></div></div></div>';
  $("a-alertas").innerHTML='<div class="sh" style="margin:4px 4px 12px">Por orden de urgencia</div>'+(IT.length?IT.map(function(x,i){return '<div class="pri '+NV[x.n][0]+(i===0&&x.n<2?" pr1":"")+'"><span class="nm">'+(i+1)+'</span><div class="bd"><span class="nv">'+NV[x.n][1]+'</span><div class="t">'+esc2(x.t)+'</div><div class="d">'+esc2(x.d)+'</div></div><button data-t2="'+x.g+'">'+x.b+'</button></div>'}).join(""):'<div class="vac"><h4>Todo en orden</h4><p>No hay pedidos, ajustes ni cobros pendientes.</p></div>');
  $("a-hoy").innerHTML=window.PROD_REAL?adHoy(SOCIOS.filter(function(o){return o.act}).length):'<div class="sh" style="margin:26px 4px 12px">Mañana sale</div><div class="grid"><div class="stat"><div class="v1">'+PED.length+'</div><div class="l">Pedidos para las 7:30</div></div><div class="stat"><div class="v1">'+c.pz+'</div><div class="l">Piezas por hornear</div></div><div class="stat"><div class="v1">'+c.listo+' de '+PED.length+'</div><div class="l">Pedidos listos</div></div><div class="stat"><div class="v1">'+SOCIOS.filter(function(o){return o.act}).length+'</div><div class="l">Socios activos</div></div></div>';
  pPer();
@@ -1478,7 +1478,7 @@ function puedeCambiar(p){var a=ahoraCun();return p.estado==="nuevo"&&(iso(a.f)+"
 /* Escalón del mes: el más alto cuyo umbral alcanza lo que el socio pagaría con ese descuento (se mide sobre lo pagado). */
 function calcMes(){var hoy=ahoraCun().f,y=hoy.getFullYear(),mo=hoy.getMonth();
  var ls=MESL.filter(function(l){var d=deISO(l.salida);return d.getFullYear()===y&&d.getMonth()===mo});
- var pag=function(k){var t=0,d=ESC[k][1]/100;ls.forEach(function(l){t+=l.cantidad*Math.round(Number(l.precio_publico)*(1-d))});return t};
+ var pag=function(k){var t=0,d=ESC[k][1]/100;ls.forEach(function(l){t+=l.cantidad*Math.round(Number(l.precio_publico)*(1000-Math.round(d*1000))/1000)});return t};
  MES_PUB=0;ls.forEach(function(l){MES_PUB+=l.cantidad*Number(l.precio_publico)});
  K_MES=0;for(var k=0;k<ESC.length;k++)if(pag(k)>=ESC[k][0])K_MES=k;
  MES_PAG=ESC.length?pag(K_MES):0;
@@ -1487,8 +1487,8 @@ function calcMes(){var hoy=ahoraCun().f,y=hoy.getFullYear(),mo=hoy.getMonth();
 function limpiarSocio(){PEDS=[];MESL=[];ULT=[];ULT_AYER=false;EDITANDO=null;HIST=HIST_EJEMPLO.slice();HOY=new Date(HOY_EJEMPLO);calcMes()}
 async function cargarPedidos(){
  if(!sb||!PERFIL)return;
- if(PERFIL.nivel!=="socio"){limpiarSocio();cargarProduccion();return}
- var v=++pedVuelta,a=ahoraCun();cargarProduccion();
+ if(PERFIL.nivel!=="socio"){limpiarSocio();cargarProduccion();cargarCobranza();return}
+ var v=++pedVuelta,a=ahoraCun();cargarProduccion();cargarCobranza();
  try{
   var r=await Promise.all([
    sb.from("soc_pedidos").select("id,folio,fecha_base,estado,nota,total_publico,creado,soc_pedido_lineas(producto_id,nombre,tipo,precio_publico,cantidad,salida,cantidad_pedida,motivo_ajuste),soc_salidas(tipo,salida,estado)")
@@ -1656,6 +1656,116 @@ fAjuste=function(i){var p=PED[i];if(!p||!PROD_REAL)return;AJ=p.lineas.map(functi
     if(x&&x.error)aviso("No se guardó el ajuste",'<div class="cam">'+esc2(msgProd(x.error))+'</div>');cargarProduccion()}}})};
 document.addEventListener("click",function(e){var b=e.target.closest("button");if(b&&b.dataset.pr)resolverAjuste(+b.dataset.pr,false)});
 document.addEventListener("visibilitychange",function(){if(!document.hidden&&PROD_REAL)cargarProduccion()});
+</script>
+<script>
+/* ===== Día 5 (27/11/2026): cierre mensual y nota por socio =====
+   Cobranza lee soc_cobranza(): por mes, cada socio con su cálculo provisional o su nota cerrada. Dueño y gerente
+   cierran el mes con soc_cerrar_mes (desde el último día a las 7:30 y sin ajustes pendientes); el dueño reabre una
+   nota sin pagos con soc_reabrir_nota. La cuenta para pagar y la facturación salen de soc_config, no de este archivo.
+   El socio ve sus notas cerradas arriba de "Mis pedidos". */
+var CIES_EJEMPLO=JSON.parse(JSON.stringify(CIES)),COB_REAL=false,COB_ERR="",cobVuelta=0,NOTAS_SOC=[],NOTAS_ERR=false,CFG_PAGO={};
+function mesNom(f){var d=deISO(String(f).slice(0,10));return MES[d.getMonth()]+" "+d.getFullYear()}
+function mesTit(f){var x=mesNom(f);return x.charAt(0).toUpperCase()+x.slice(1)}
+function mesSolo(f){return mesNom(f).split(" ")[0]}
+function ddmm(s){var p=String(s||"").slice(0,10).split("-");return p.length===3?p[2]+"/"+p[1]+"/"+p[0]:""}
+function limiteDe(f){var d=deISO(String(f).slice(0,10)),l=new Date(d.getFullYear(),d.getMonth()+1,30);return ddmm(iso(l))}
+function cfgDe(rows){var c={};(rows||[]).forEach(function(r){c[r.clave]=r.valor});return c}
+function nivelYo(){return window.PERFIL&&PERFIL.nivel||""}
+function lineasNota(L){return(L||[]).map(function(l){return{nombre:l.nombre,pz:+l.piezas,ps:+l.precio_socio,im:+l.importe}})}
+function socioCob(s,M){var no=s.nota,ca=s.calculo||{},x=no||ca;
+ return{real:true,n:s.nombre,socio:s.socio_id,f:M.f,nota:no||null,id:no?no.id:null,folio:no?no.folio:"",limite:no?no.limite:"",
+  pub:+x.total_publico||0,d:+x.descuento||0,t:+x.total||0,ent:!!x.entrega,pz:+x.piezas||0,pag:!!(no&&no.estado==="pagada"),
+  aj:+s.ajustes||0,L:lineasNota(x.lineas),est:no?(no.estado==="pagada"?"Pagado":"Por cobrar"):(M.en?"En curso":"Por cerrar")}}
+async function cargarCobranza(){var nv=nivelYo();
+ if(!sb||!PERFIL||["dueno","gerente","aux"].indexOf(nv)<0){cobVuelta++;COB_REAL=false;COB_ERR="";CIES=JSON.parse(JSON.stringify(CIES_EJEMPLO));cm="oct";ci=0;CIE=CIES.oct.l;
+  if(nv==="socio"&&sb)cargarNotasSocio();else{NOTAS_SOC=[];NOTAS_ERR=false}return}
+ NOTAS_SOC=[];var v=++cobVuelta;if(!COB_REAL){COB_REAL=true;COB_ERR="cargando";CIES={};CIE=[];pCierre()}
+ try{var r=await Promise.all([sb.rpc("soc_cobranza"),sb.from("soc_config").select("clave,valor")]);
+  if(v!==cobVuelta)return;if(r[0].error)throw r[0].error;
+  CFG_PAGO=cfgDe(r[1].data);var X=r[0].data||{},C={};
+  (X.meses||[]).forEach(function(M){var o={f:String(M.mes).slice(0,10),en:!!M.en_curso,cerrable:!!M.cerrable,desde:M.cierre_desde,real:true};
+   o.t=mesTit(o.f)+(o.en?" · en curso":"");o.c=o.en?1:0;o.l=(M.socios||[]).map(function(x){return socioCob(x,o)});
+   o.pc=o.l.filter(function(x){return !x.nota}).length;C[o.f.slice(0,7)]=o});
+  var ks=Object.keys(C);CIES=C;COB_ERR="";
+  if(!C[cm]){var an=ks.filter(function(k){return !C[k].en&&C[k].l.length});cm=an.length?an[an.length-1]:(ks[ks.length-1]||"");ci=0}
+ }catch(e){if(v!==cobVuelta)return;COB_ERR="error"}
+ pCierre();pAdmin()}
+async function cargarNotasSocio(){var v=++cobVuelta;
+ try{var r=await Promise.all([sb.from("soc_notas").select("id,folio,mes,piezas,total_publico,descuento,total,entrega,limite,estado,soc_nota_lineas(nombre,tipo,piezas,precio_publico,precio_socio,importe)").neq("estado","anulada").order("mes",{ascending:false}),
+   sb.from("soc_config").select("clave,valor")]);
+  if(v!==cobVuelta)return;if(r[0].error)throw r[0].error;CFG_PAGO=cfgDe(r[1].data);NOTAS_ERR=false;
+  var nom=PERFIL?((PERFIL.soc_socios&&PERFIL.soc_socios.nombre)||PERFIL.nombre):"";
+  NOTAS_SOC=(r[0].data||[]).map(function(no){return{real:true,n:nom,f:String(no.mes).slice(0,10),nota:no,id:no.id,folio:no.folio,limite:no.limite,
+   pub:+no.total_publico,d:+no.descuento,t:+no.total,ent:!!no.entrega,pz:+no.piezas,pag:no.estado==="pagada",L:lineasNota(no.soc_nota_lineas)}})}
+ catch(e){if(v!==cobVuelta)return;NOTAS_SOC=[];NOTAS_ERR=true}
+ if(filtro==="pedidos")pintar()}
+function debReal(){var r=[];Object.keys(CIES).forEach(function(k){(CIES[k].l||[]).forEach(function(o){if(o.nota&&!o.pag)r.push(o)})});return r}
+function debMes(deb){var ms=deb.map(function(o){return o.f}).filter(function(x,i,a){return a.indexOf(x)===i});return ms.length===1?" de "+mesSolo(ms[0]):""}
+function cierreUrg(IT){Object.keys(CIES).forEach(function(k){var M=CIES[k];if(!M.cerrable||!M.pc)return;
+ IT.push({n:1,t:"Falta cerrar "+mesSolo(M.f),d:(M.pc===1?"1 socio con pedidos todavía no tiene nota: ":M.pc+" socios con pedidos todavía no tienen nota: ")+M.l.filter(function(o){return !o.nota}).map(function(o){return o.n}).join(", ")+".",b:"Cerrar",g:"cierre"})})}
+var pCierreBase=pCierre;
+pCierre=function(){if(!COB_REAL)return pCierreBase();
+ var ks=Object.keys(CIES),M=CIES[cm];
+ $("c-mes").innerHTML=ks.map(function(k){return '<button class="chip'+(k===cm?" on":"")+'" data-cm="'+k+'">'+CIES[k].t+'</button>'}).join("");
+ if(COB_ERR||!M){CIE=[];$("ci-tot").style.display="none";$("c-fil").innerHTML="";
+  $("c-lista").innerHTML=COB_ERR==="cargando"?'<div class="tj vacio" role="status">Cargando la cobranza…</div>'
+   :COB_ERR?'<div class="tj vacio" role="alert">No se pudo cargar la cobranza. Revisa tu internet e intenta de nuevo.<div class="acc" style="margin-top:14px"><button data-cobr="1">Reintentar</button></div></div>'
+   :'<div class="tj vacio">Todavía no hay pedidos de socios.</div>';pPagos();return}
+ $("ci-tot").style.display="";CIE=M.l;if(ci>=CIE.length)ci=0;
+ var tt=0,pg=0;CIE.forEach(function(o){tt+=o.t;if(o.pag)pg+=o.t});
+ var hs=horaTxt(HORA_SAL),cuando=M.cerrable?"":" · se cierra el "+ddmm(M.desde)+" a las "+hs,
+  puede=["dueno","gerente"].indexOf(nivelYo())>=0&&M.cerrable&&M.pc;
+ $("ci-tot").innerHTML=!M.pc&&CIE.length?'<div class="v">'+m(tt)+'</div><div class="l">Cobrado '+m(pg)+' · por cobrar '+m(tt-pg)+'</div><div class="avc"><i style="width:'+(tt?pg/tt*100:0)+'%"></i></div>'
+  :'<div class="v">'+m(tt)+'</div><div class="l">'+(M.en&&!M.cerrable?"Acumulado provisional del mes · el escalón todavía puede subir":"Provisional · "+(M.pc===1?"falta 1 socio por cerrar":"faltan "+M.pc+" socios por cerrar"))+cuando+'</div>';
+ var todo=!M.pc&&CIE.length,nc=CIE.filter(function(o){return !o.pag}).length;
+ $("c-fil").innerHTML=todo?[["todos","Todos ("+CIE.length+")"],["cobrar","Por cobrar ("+nc+")"],["pagados","Pagados ("+(CIE.length-nc)+")"]].map(function(f){return '<button class="chip'+(cfil===f[0]?" on":"")+'" data-cf="'+f[0]+'">'+f[1]+'</button>'}).join("")
+  :puede?'<div class="acc" style="width:100%"><button class="p" data-cmes="'+M.f+'">Cerrar '+mesSolo(M.f)+'</button></div>':"";
+ var vis=CIE.map(function(o,i){return[o,i]}).filter(function(z){return !todo||cfil==="todos"||(cfil==="cobrar")===!z[0].pag});
+ $("c-lista").innerHTML=vis.length?vis.map(function(z){var o=z[0],i=z[1];return '<div class="tj cn"><div class="ped-top"><div class="n" style="font-size:20px">'+esc2(o.n)+'</div><span class="estado '+(o.pag?"ok":o.nota?"nuevo":"")+'">'+o.est+'</span></div><div class="tot">'+m(o.t)+'</div>'
+   +'<div class="dt">Escalón '+o.d+'% · valor público '+m(o.pub)+' · '+(o.ent?"entrega gratis":"retira")+'</div>'
+   +(o.nota?'<div class="dt">'+esc2(o.folio)+' · paga a más tardar el '+ddmm(o.limite)+'</div>':'')
+   +(o.aj?'<div class="dt">'+o.aj+(o.aj===1?" ajuste por aprobar":" ajustes por aprobar")+': apruébalos antes de cerrar</div>':'')
+   +'<div class="acc"><button data-vn="'+i+'">Ver nota</button>'+(o.nota&&!o.pag&&nivelYo()==="dueno"?'<button data-rn="'+i+'">Reabrir nota</button>':'')+'</div></div>'}).join("")
+  :'<div class="tj vacio">'+(CIE.length?"No hay notas en esta vista.":"Sin pedidos de socios en este mes.")+'</div>';
+ if($("a-per").innerHTML)pPer();pPagos()};
+var verNotaBase=verNota;
+verNota=function(){var x=CIE[ci];if(!COB_REAL||!x||!x.real)return verNotaBase();notaVer(x,"Así la recibe el socio")};
+function notaVer(x,bar){var c=CFG_PAGO;document.querySelector(".nota-bar span").textContent=bar;
+ var pago=[["Banco",c.pago_banco],["Titular",c.pago_titular],["Cuenta",c.pago_cuenta],["CLABE",c.pago_clabe]].filter(function(r){return r[1]}).map(function(r){return '<div class="rw"><div class="m">'+r[0]+'</div><div class="v">'+esc2(r[1])+'</div></div>'}).join("")
+  ||'<div class="rw"><div class="m">Pide los datos de pago en la panadería.</div></div>';
+ if(x.nota&&x.limite)pago+='<div class="rw"><div class="m">Paga a más tardar</div><div class="v">'+ddmm(x.limite)+'</div></div>';
+ var fac=[c.fact_correo,c.fact_tel].filter(Boolean).map(esc2).join(" · ");
+ $("nota-c").innerHTML='<div class="cab"><span class="b k1"></span><div class="cab-fila"><div><img class="lg" alt="EGO" src="'+document.querySelector(".lg-logo").src+'"><small>Programa de Socios · nota de '+mesNom(x.f)+'</small><h2>'+esc2(x.n)+'</h2></div><span class="estado '+(x.pag?"ok":"")+'" style="background:var(--crema)">'+(x.nota?(x.pag?"Pagada":"Por cobrar"):"Provisional")+'</span></div></div>'
+  +'<div class="gasto"><div class="v">'+m(x.t)+'</div><div class="l">Total a pagar · escalón '+x.d+'%'+(x.folio?' · folio '+esc2(x.folio):' · el mes todavía no se cierra')+'</div></div>'
+  +'<div class="tit">Lo que compraste</div><div class="tj">'+(x.L.length?x.L.map(function(l){var f=fotoDe(l.nombre);return '<div class="rw">'+(f?'<img class="th" alt="" src="'+f+'">':'')+'<div style="flex:1"><div class="n">'+esc2(l.nombre)+'</div><div class="m">'+l.pz+(l.pz===1?" pieza × ":" piezas × ")+m(l.ps)+'</div></div><div class="v">'+m(l.im)+'</div></div>'}).join(""):'<div class="rw"><div class="m">Sin pedidos en este mes.</div></div>')+'</div>'
+  +'<div class="tit">Resumen</div><div class="tj res"><div class="l"><span>Valor a precio público</span><span>'+m(x.pub)+'</span></div><div class="l"><span>Tu descuento ('+x.d+'%)</span><span>('+m(x.pub-x.t)+')</span></div><div class="l g"><span>Total a pagar</span><span>'+m(x.t)+'</span></div><small>'+(x.ent?"Incluye entrega gratis en tu puerta cada mañana.":"Retiras en la panadería.")+'</small></div>'
+  +(x.pag?'':'<div class="tit">Datos para tu pago</div><div class="tj">'+pago+'</div>')
+  +'<p class="pie">Emite RESTAURANTE EGO, S.A. DE C.V. · Panadería EGO'+(fac?' · Facturación: '+fac:'')+'</p>';
+ $("nota").classList.add("on");$("nota").scrollTop=0}
+var pintarHistBase=pintarHist;
+pintarHist=function(){return notasSocioHtml()+pintarHistBase()};
+function notasSocioHtml(){if(!sb||nivelYo()!=="socio")return "";
+ if(NOTAS_ERR)return '<div class="tj hist" role="alert"><div class="de">No se pudieron cargar tus notas. Revisa tu internet.</div></div>';
+ if(!NOTAS_SOC.length)return "";
+ return '<div class="sh" style="margin:6px 4px 12px">Tus notas</div>'+NOTAS_SOC.map(function(x,i){return '<div class="tj hist"><div class="ped-top"><div class="fe">Nota de '+mesNom(x.f)+'</div><span class="estado '+(x.pag?"ok":"nuevo")+'">'+(x.pag?"Pagada":"Por cobrar")+'</span></div><div class="de">'+esc2(x.folio)+' · '+x.pz+' piezas · '+m(x.t)+'</div>'+(x.pag?'':'<div class="de">Paga a más tardar el '+ddmm(x.limite)+'</div>')+'<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-vns="'+i+'">Ver nota</button></div></div>'}).join("")
+  +'<div class="sh" style="margin:22px 4px 12px">Tus pedidos</div>'}
+function cerrarMes(f){var k=String(f).slice(0,7),M=CIES[k];if(!COB_REAL||!M)return;
+ var ls=M.l.filter(function(o){return !o.nota}),tt=0;ls.forEach(function(o){tt+=o.t});if(!ls.length)return;var mn=mesSolo(f);
+ confirmar("¿Seguro que deseas cerrar "+mn+"?",'<div class="cam">'+ls.map(function(o){return esc2(o.n)+" · "+m(o.t)}).join("<br>")+'<br><b style="font-weight:500">Total '+m(tt)+'</b><br>Se '+(ls.length===1?"genera 1 nota":"generan "+ls.length+" notas")+' con límite de pago el '+limiteDe(f)+'.</div>',"Sí, cerrar "+mn,"No, regresar",async function(){
+  var x;try{x=await sb.rpc("soc_cerrar_mes",{p_mes:M.f})}catch(e){x={error:e}}
+  if(x&&x.error)aviso("No se pudo cerrar "+mn,'<div class="cam">'+esc2(msgProd(x.error))+'</div>');
+  else aviso(mesTit(f).split(" ")[0]+" quedó cerrado",'<div class="cam">'+((x&&x.data&&x.data.folios)||[]).map(esc2).join("<br>")+'</div>');
+  cargarCobranza()})}
+function reabrirNota(i){var o=CIE[i];if(!COB_REAL||!o||!o.nota)return;
+ confirmar("¿Seguro que deseas reabrir esta nota?",esc2(o.n)+'<div class="cam">'+esc2(o.folio)+' · '+m(o.t)+'<br>La nota queda anulada y el mes de este socio se vuelve a cerrar con un folio nuevo.</div>',"Sí, reabrir nota","No, regresar",async function(){
+  var x;try{x=await sb.rpc("soc_reabrir_nota",{p_id:o.id})}catch(e){x={error:e}}
+  if(x&&x.error)aviso("No se pudo reabrir la nota",'<div class="cam">'+esc2(msgProd(x.error))+'</div>');cargarCobranza()})}
+var atabBase=atab;atab=function(t){atabBase(t);if(COB_REAL&&t==="cierre")cargarCobranza()};
+document.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;
+ if(b.dataset.cmes)cerrarMes(b.dataset.cmes);
+ else if(b.dataset.rn)reabrirNota(+b.dataset.rn);
+ else if(b.dataset.vns){var x=NOTAS_SOC[+b.dataset.vns];if(x)notaVer(x,"Tu nota mensual")}
+ else if(b.dataset.cobr)cargarCobranza()});
 </script>
 </body>
 </html>
