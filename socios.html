@@ -1041,15 +1041,15 @@ function vista(v){["cat","ped","ok"].forEach(function(x){$("v-"+x).classList.tog
 function celda(c,i,fijo){var q=Q[i]||0,p=pre(c[1]);return '<div class="pc'+(q?" sel":"")+(fijo?" fijo":"")+'" data-k="'+i+'"><div class="ph">'+(c[3]?'<img alt="'+esc2(c[0])+'" src="'+c[3]+'" loading="lazy">':'<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#C9BFA6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"/><circle cx="12" cy="12.5" r="3.2"/><path d="M8 6l1.5-2h5L16 6"/></svg>')+'<span class="gn">Ganas <b>$'+(c[1]-p)+'</b> c/u</span>'+(q?'<span class="cn">'+q+'</span>':'')+'</div><div class="bd"><div class="n">'+esc2(c[0])+'</div><div class="pre"><b>$'+p+'</b><s>$'+c[1]+'</s></div><div class="ct">'+(q?'<div class="st"><button data-i="'+i+'" data-a="-1" aria-label="Quitar uno de '+esc2(c[0])+'">−</button><span>'+q+'</span><button class="mas" data-i="'+i+'" data-a="1" aria-label="Agregar uno de '+esc2(c[0])+'">+</button></div>':'<button class="ag" data-i="'+i+'" data-a="1">Agregar</button>')+'</div></div></div>'}
 function fotoDe(n){var c=CAT.filter(function(x){return x[0]===n||x[0].indexOf(n)===0})[0];return c&&c[3]?c[3]:""}
 var MES_PAG=0,MES_PUB=0,ULT=[];
-function pHeroe(){if(!ESC.length){$("heroe").innerHTML="";return}var k=0;ESC.forEach(function(e,i){if(MES_PAG>=e[0])k=i});var e=ESC[k],sg=ESC[k+1];
+function pHeroe(){if(!ESC.length){$("heroe").innerHTML="";return}var k=Math.min(K_MES,ESC.length-1);var e=ESC[k],sg=ESC[k+1];
  var st=ESC.map(function(x,i){return '<div class="stp'+(i<k?" ya":i===k?" tu":"")+(x[2]?" en":"")+'" style="height:'+(38+i*16)+'px;animation-delay:'+(i*70)+'ms">'+x[1]+'%</div>'}).join("");
- $("heroe").innerHTML='<div class="hz"><div><div class="tt">Tu escalón este mes</div><div class="big">'+e[1]+'%<small>de descuento</small></div><div class="sig">'+(sg?'Te faltan <b>'+m(sg[0]-MES_PAG)+'</b> para subir a <b>'+sg[1]+'%</b>'+(sg[2]&&!e[2]?' y recibir tu pan en la puerta.':'.'):'Estás en el escalón más alto.')+'</div></div>'
+ $("heroe").innerHTML='<div class="hz"><div><div class="tt">Tu escalón este mes</div><div class="big">'+e[1]+'%<small>de descuento</small></div><div class="sig">'+(sg?'Te faltan <b>'+m(FALTA_SIG)+'</b> para subir a <b>'+sg[1]+'%</b>'+(sg[2]&&!e[2]?' y recibir tu pan en la puerta.':'.'):'Estás en el escalón más alto.')+'</div></div>'
   +'<div><div class="stair" role="img" aria-label="Escalera de descuentos: vas en el escalón '+(k+1)+' de '+ESC.length+'">'+st+'</div><div class="stleg">'+ESC.map(function(x){return '<span>'+(x[0]<1000?"inicio":"$"+Math.round(x[0]/1000)+"k")+'</span>'}).join("")+'</div></div>'
   +'<div class="gano"><div><b>'+m(MES_PAG)+'</b><span>Llevas comprado en '+MES[new Date().getMonth()]+'</span></div><div><b>'+m(MES_PUB-MES_PAG)+'</b><span>Tu utilidad bruta si lo vendes a precio público</span></div></div></div>'}
 function pRep(){var r=tot();if(filtro==="pedidos"||r.pz||!ULT.length){$("rep").innerHTML="";return}var pz=0;ULT.forEach(function(u){pz+=u[1]});
- $("rep").innerHTML='<div class="repe"><div class="ths">'+ULT.slice(0,3).map(function(u){return CAT[u[0]]&&CAT[u[0]][3]?'<img alt="" src="'+CAT[u[0]][3]+'">':''}).join("")+'</div><div class="tx">Tu pedido de ayer<small>'+pz+' piezas · '+ULT.length+' panes</small></div><button id="repetir">Repetir</button></div>'}
+ $("rep").innerHTML='<div class="repe"><div class="ths">'+ULT.slice(0,3).map(function(u){return CAT[u[0]]&&CAT[u[0]][3]?'<img alt="" src="'+CAT[u[0]][3]+'">':''}).join("")+'</div><div class="tx">'+(ULT_AYER?"Tu pedido de ayer":"Tu último pedido")+'<small>'+pz+' piezas · '+ULT.length+' panes</small></div><button id="repetir">Repetir</button></div>'}
 function fila(c,i){var q=Q[i]||0,p=pre(c[1]);return '<div class="tj pr pf">'+(c[3]?'<img class="th" alt="" src="'+c[3]+'">':'<span class="th"></span>')+'<div class="tx"><div class="n">'+esc2(c[0])+'</div><div class="p"><b>$'+p+'</b> c/u · '+m(q*p)+'</div></div><div class="st">'+(q?'<button data-i="'+i+'" data-a="-1" aria-label="Quitar uno de '+esc2(c[0])+'">−</button><span>'+q+'</span>':'')+'<button class="mas" data-i="'+i+'" data-a="1" aria-label="Agregar uno de '+esc2(c[0])+'">+</button></div></div>'}
-function rg(p,ra,rb){var a,b=new Date(HOY),l=new Date(HOY);l.setDate(HOY.getDate()-((HOY.getDay()+6)%7));
+function rg(p,ra,rb){var a,b=new Date(HOY.getFullYear(),HOY.getMonth(),HOY.getDate()+1),l=new Date(HOY);l.setDate(HOY.getDate()-((HOY.getDay()+6)%7));
  if(p==="semana"){a=l}else if(p==="semana0"){a=new Date(l);a.setDate(l.getDate()-7);b=new Date(l);b.setDate(l.getDate()-1)}
  else if(p==="mes"){a=new Date(HOY.getFullYear(),HOY.getMonth(),1)}else if(p==="mes0"){a=new Date(HOY.getFullYear(),HOY.getMonth()-1,1);b=new Date(HOY.getFullYear(),HOY.getMonth(),0)}
  else{a=new Date(ra+"T00:00");b=new Date(rb+"T00:00");if(b<a){var z=a;a=b;b=z}}
@@ -1092,12 +1092,12 @@ function lineas(){var el=$("g-lin");if(!el)return;var W=el.clientWidth;if(!W)ret
  el.onclick=function(e){var c=e.target.closest(".col");if(!c){ver(-1);return}var i=+c.dataset.i;ver(i)};
  el.onpointerleave=function(e){if(e.pointerType!=="touch")ver(-1)};
  $("g-tab").innerHTML='<table><tr><th>Semana del</th>'+SOC.map(function(q){return '<th>'+esc2(q[0].split(" ")[0])+'</th>'}).join("")+'<th>Total</th></tr>'+S.map(function(w,i){return '<tr><td>'+w.a.getDate()+" "+MES[w.a.getMonth()].slice(0,3)+(w.par?" *":"")+'</td>'+w.v.map(function(v){return '<td>'+m(v)+'</td>'}).join("")+'<td>'+m(T[i])+'</td></tr>'}).join("")+'</table><p class="sub" style="margin:6px 0 0">* Semana en curso.</p>'}
-function pintarHist(){var r=rango(),ls=HIST.filter(function(p){return p.d>=r[0]&&p.d<=r[1]}),g=0,pz=0;ls.forEach(function(p){g+=p.t;pz+=p.pz});
+function pintarHist(){var r=rango(),ls=HIST.filter(function(p){return p.d>=r[0]&&p.d<=r[1]}),g=0,pz=0,nn=0;ls.forEach(function(p){if(p.e!=="Cancelado"){g+=p.t;pz+=p.pz;nn++}});
  var P=PER;
  var h='<div class="per">'+P.map(function(p){return '<button class="chip'+(per===p[0]?" on":"")+'" data-p="'+p[0]+'">'+p[1]+'</button>'}).join("")+'</div>';
  h+='<div class="rango'+(per==="otro"?" on":"")+'"><label>Desde<input type="date" id="r-a" value="'+iso(r[0])+'"></label><label>Hasta<input type="date" id="r-b" value="'+iso(r[1])+'"></label></div>';
- h+='<div class="gasto"><div class="v">'+m(g)+'</div><div class="l">Compraste del '+r[0].getDate()+" de "+MES[r[0].getMonth()]+" al "+r[1].getDate()+" de "+MES[r[1].getMonth()]+' · '+ls.length+(ls.length===1?" pedido":" pedidos")+' · '+pz+' piezas</div></div>';
- h+=ls.length?ls.map(function(p){return '<div class="tj hist"><div class="ped-top"><div class="fe">'+fecha(p.d)+'</div><span class="estado '+(p.e==="Entregado"?"ok":"")+'">'+p.e+'</span></div><div class="de">'+p.pz+' piezas · '+m(p.t)+'</div></div>'}).join(""):'<div class="vac"><div class="im">'+[10,7,23].map(function(k){return CAT[k]&&CAT[k][3]?'<img alt="" src="'+CAT[k][3]+'">':""}).join("")+'</div><h4>Sin pedidos en estas fechas</h4><p>Elige otro periodo o arma tu pedido de mañana.</p><button data-f="todo">Ir al catálogo</button></div>';
+ h+='<div class="gasto"><div class="v">'+m(g)+'</div><div class="l">Compraste del '+r[0].getDate()+" de "+MES[r[0].getMonth()]+" al "+r[1].getDate()+" de "+MES[r[1].getMonth()]+' · '+nn+(nn===1?" pedido":" pedidos")+' · '+pz+' piezas</div></div>';
+ h+=ls.length?ls.map(function(p){return '<div class="tj hist"><div class="ped-top"><div class="fe">'+fecha(p.d)+'</div><span class="estado '+(p.e==="Entregado"||p.e==="Listo"?"ok":p.e==="Recibido"?"nuevo":"")+'">'+p.e+'</span></div><div class="de">'+(p.fo?esc2(p.fo)+' · ':'')+p.pz+' piezas · '+m(p.t)+'</div>'+(p.ed?'<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-xcam="'+p.id+'">Cambiar</button><button class="mini" data-xcan="'+p.id+'">Cancelar</button></div>':'')+'</div>'}).join(""):'<div class="vac"><div class="im">'+[10,7,23].map(function(k){return CAT[k]&&CAT[k][3]?'<img alt="" src="'+CAT[k][3]+'">':""}).join("")+'</div><h4>Sin pedidos en estas fechas</h4><p>Elige otro periodo o arma tu pedido de mañana.</p><button data-f="todo">Ir al catálogo</button></div>';
  return h}
 function pintar(){var h="";
  if(filtro==="pedidos")h=pintarHist();
@@ -1293,7 +1293,7 @@ document.addEventListener("click",function(e){var b=e.target.closest("button");i
  else if(b.dataset.p){per=b.dataset.p;pintar()}
  else if(b.dataset.ap){aper=b.dataset.ap;pPer()}
  else if(b.dataset.a){var i=b.dataset.i;Q[i]=Math.max(0,(Q[i]||0)+ +b.dataset.a);var cd=b.closest(".pc");if($("v-ped").classList.contains("on"))pintarPed();else if(cd){cd.outerHTML=celda(CAT[i],+i,true);barra()}else pintar()}
- else if(b.id==="enviar"){var r=tot();if(!r.pz)return;var hs0=haySal();conf("¿Seguro que deseas enviar este pedido?",'<div class="cam"><b style="font-weight:500">'+r.pz+" piezas · "+m(r.t)+" provisional</b>"+(hs0[0]?"<br>Pan dulce: sale el jueves 12, 7:30 a. m.":"")+(hs0[1]?"<br>Pan salado: sale el viernes 13, 7:30 a. m.":"")+"</div>",function(){var f="PED-"+String(Date.now()).slice(-6);$("ok-res").textContent=r.pz+" piezas · "+m(r.t)+" provisional";$("ok-fol").textContent="Folio "+f;var hs=haySal();$("ok-sale").innerHTML=(hs[0]?"Pan dulce: sale el jueves 12 a las 7:30 a. m.":"")+(hs[0]&&hs[1]?"<br>":"")+(hs[1]?"Pan salado: sale el viernes 13 a las 7:30 a. m.":"");var dm=new Date(HOY);dm.setDate(dm.getDate()+1);HIST.unshift({d:dm,f:f,pz:r.pz,t:r.t,e:"Recibido"});$("ok-fotos").innerHTML=CAT.map(function(c,k){return Q[k]&&c[3]?'<img alt="" src="'+c[3]+'">':""}).filter(Boolean).slice(0,5).join("");Q={};$("ped-nota").value="";trans(800,"Enviando tu pedido",function(){go("cliente");vista("ok")})})}
+ else if(b.id==="enviar"){enviarPedido()}
  else if(b.id==="ir-hist"){filtro="pedidos";document.querySelectorAll("#filtros .chip").forEach(function(x){x.classList.toggle("on",x.dataset.f==="pedidos")});vista("cat")}
  else if(b.dataset.h){tarde=b.dataset.h==="tarde";document.querySelectorAll(".simu button").forEach(function(x){x.classList.toggle("on",x===b)});pProd()}
  else if(b.dataset.pa){var pa=PED[b.dataset.pa];conf("¿Seguro que deseas aceptar este pedido?",detPed(pa),function(){pa.e="hornear";pa.por=quien||"equipo";bit("Pedidos","Aceptó el pedido de "+pa.c+" · "+pzs(pa)+" piezas","p");pProd()})}
@@ -1443,14 +1443,119 @@ async function cargarCatalogo(){
   if(r[0].error)throw r[0].error;if(r[1].error)throw r[1].error;
   CAT=r[0].data.map(function(p){return[p.nombre,Number(p.precio),p.tipo==="salado"?"s":"d",fotoUrl(p.foto),p.id]});
   ESC=r[1].data.map(function(e){return[Number(e.desde),Number(e.descuento),e.entrega?1:0]});
-  MES_PAG=0;MES_PUB=0;ULT=[];
-  D=ESC.length?ESC[escalonDe(MES_PAG)][1]/100:0;
+  calcMes();
   catEstado=CAT.length&&ESC.length?"":"vacio";
  }catch(e){if(v!==catVuelta)return;catEstado="error"}
- pintar();pAdmin()}
+ pintar();pAdmin();if(!catEstado&&v===catVuelta)cargarPedidos()}
 document.addEventListener("click",function(e){if(e.target.closest("#cat-reintentar"))cargarCatalogo()});
 (function(){var abrir=abrirSesion;abrirSesion=function(pf,dest,anim){abrir(pf,dest,anim);cargarCatalogo()}})();
 if(window.PERFIL)cargarCatalogo();
+</script>
+<script>
+/* ===== Día 3 (27/11/2026): pedidos en Supabase =====
+   Enviar, cambiar y cancelar con las funciones de la base: soc_crear_pedido, soc_cambiar_pedido y soc_cancelar_pedido.
+   Horario con hora de Cancún: se pide de la hora de salida (7:30) a la hora límite (1:00); de 1:00 a 7:30 está cerrado.
+   El pan dulce sale el día base a las 7:30 y el salado un día después. Se puede cambiar o cancelar mientras el pedido
+   esté Recibido y antes de la hora límite de su día base. El escalón del mes se mide por la fecha de salida de cada línea. */
+var HORA_LIM="01:00",HORA_SAL="07:30",PEDS=[],MESL=[],K_MES=0,FALTA_SIG=0,ULT_AYER=false,EDITANDO=null,pedVuelta=0;
+var HIST_EJEMPLO=HIST.slice(),HOY_EJEMPLO=new Date(HOY),CF0=null;
+function ahoraCun(){var p={};new Intl.DateTimeFormat("en-CA",{timeZone:"America/Cancun",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(new Date()).forEach(function(x){p[x.type]=x.value});return{f:new Date(+p.year,+p.month-1,+p.day),hm:p.hour+":"+p.minute}}
+function diaMas(d,n){var x=new Date(d);x.setDate(x.getDate()+n);return x}
+function deISO(t){var a=String(t).split("-");return new Date(+a[0],+a[1]-1,+a[2])}
+function horaTxt(hm){var h=+hm.slice(0,2);return(h%12||12)+":"+hm.slice(3,5)+(h<12?" a. m.":" p. m.")}
+function artHora(hm){var h=+hm.slice(0,2);return h===1||h===13?"la ":"las "}
+function fechaMin(d){var t=fecha(d);return t.charAt(0).toLowerCase()+t.slice(1)}
+function salidaBase(){var a=ahoraCun();if(a.hm>=HORA_LIM&&a.hm<HORA_SAL)return{cerrado:true,base:null};return{cerrado:false,base:a.hm<HORA_LIM?a.f:diaMas(a.f,1)}}
+function puedeCambiar(p){var a=ahoraCun();return p.estado==="nuevo"&&(iso(a.f)+" "+a.hm)<(p.fecha_base+" "+HORA_LIM)}
+/* Escalón del mes: el más alto cuyo umbral alcanza lo que el socio pagaría con ese descuento (se mide sobre lo pagado). */
+function calcMes(){var hoy=ahoraCun().f,y=hoy.getFullYear(),mo=hoy.getMonth();
+ var ls=MESL.filter(function(l){var d=deISO(l.salida);return d.getFullYear()===y&&d.getMonth()===mo});
+ var pag=function(k){var t=0,d=ESC[k][1]/100;ls.forEach(function(l){t+=l.cantidad*Math.round(Number(l.precio_publico)*(1-d))});return t};
+ MES_PUB=0;ls.forEach(function(l){MES_PUB+=l.cantidad*Number(l.precio_publico)});
+ K_MES=0;for(var k=0;k<ESC.length;k++)if(pag(k)>=ESC[k][0])K_MES=k;
+ MES_PAG=ESC.length?pag(K_MES):0;
+ FALTA_SIG=ESC[K_MES+1]?Math.max(0,ESC[K_MES+1][0]-pag(K_MES+1)):0;
+ D=ESC.length?ESC[K_MES][1]/100:0}
+function limpiarSocio(){PEDS=[];MESL=[];ULT=[];ULT_AYER=false;EDITANDO=null;HIST=HIST_EJEMPLO.slice();HOY=new Date(HOY_EJEMPLO);calcMes()}
+async function cargarPedidos(){
+ if(!sb||!PERFIL)return;
+ if(PERFIL.nivel!=="socio"){limpiarSocio();return}
+ var v=++pedVuelta,a=ahoraCun();
+ try{
+  var r=await Promise.all([
+   sb.from("soc_pedidos").select("id,folio,fecha_base,estado,nota,total_publico,creado,soc_pedido_lineas(producto_id,nombre,tipo,precio_publico,cantidad,salida)")
+     .gte("fecha_base",iso(new Date(a.f.getFullYear(),a.f.getMonth()-1,1))).order("fecha_base",{ascending:false}).order("creado",{ascending:false}),
+   sb.from("soc_config").select("clave,valor")]);
+  if(v!==pedVuelta)return;
+  if(r[0].error)throw r[0].error;
+  (r[1].data||[]).forEach(function(c){var t=String(c.valor).slice(0,5);if(!/^\d\d:\d\d$/.test(t))return;if(c.clave==="hora_limite")HORA_LIM=t;if(c.clave==="hora_salida")HORA_SAL=t});
+  mtHor=horaTxt(HORA_LIM);
+  PEDS=r[0].data||[];HOY=a.f;
+  MESL=[];PEDS.forEach(function(p){if(p.estado!=="cancelado")(p.soc_pedido_lineas||[]).forEach(function(l){MESL.push(l)})});
+  calcMes();
+  HIST=PEDS.map(function(p){var pz=0,t=0;(p.soc_pedido_lineas||[]).forEach(function(l){pz+=l.cantidad;t+=l.cantidad*pre(Number(l.precio_publico))});
+   var d=deISO(p.fecha_base),e=p.estado==="cancelado"?"Cancelado":p.estado==="listo"?(d<a.f?"Entregado":"Listo"):p.estado==="para_hornear"?"En producción":"Recibido";
+   return{d:d,f:p.folio,fo:p.folio,pz:pz,t:t,e:e,id:p.id,ed:puedeCambiar(p)}});
+  var ix={};CAT.forEach(function(c,i){ix[c[4]]=i});
+  var u=PEDS.filter(function(p){return p.estado!=="cancelado"})[0];
+  ULT=u?(u.soc_pedido_lineas||[]).filter(function(l){return ix[l.producto_id]!==undefined}).map(function(l){return[ix[l.producto_id],l.cantidad]}):[];
+  ULT_AYER=!!u&&u.fecha_base===iso(a.f);
+  if(EDITANDO&&!PEDS.some(function(p){return p.id===EDITANDO.id&&puedeCambiar(p)})){EDITANDO=null;Q={};$("ped-nota").value=""}
+  pintar();if($("v-ped").classList.contains("on"))pintarPed()
+ }catch(e){}}
+/* Diálogos: confirmar con el verbo de la acción, y avisos con un solo botón. */
+function etiquetas(ok,no){if(!CF0)CF0=[$("cf-ok").textContent,$("cf-no").textContent];$("cf-ok").textContent=ok||CF0[0];$("cf-no").textContent=no||CF0[1];$("cf-no").style.display=""}
+var confBase=conf;conf=function(t,x,fn){confBase(t,x,fn);etiquetas()};
+function confirmar(t,x,ok,no,fn){confBase(t,x,fn);etiquetas(ok,no)}
+function aviso(t,x){confBase(t,x,null);etiquetas("Entendido");$("cf-no").style.display="none"}
+function msgPedido(e){var c=String(e&&e.code||""),t=String(e&&(e.message||e.error_description)||"");
+ if(/^EGO/.test(c))return t;
+ if(!navigator.onLine||/failed to fetch|networkerror|network request|load failed/i.test(t))return "Sin conexión. Revisa tu internet e intenta de nuevo; tu pedido sigue en el carrito.";
+ return "No se pudo completar. Intenta de nuevo en un momento; tu pedido sigue en el carrito."}
+function lineasQ(){var o=[];CAT.forEach(function(c,i){if(Q[i])o.push({producto_id:c[4],cantidad:Q[i]})});return o}
+saleHtml=function(){var x=haySal(),s=salidaBase(),base=EDITANDO?EDITANDO.base:s.base,hs=horaTxt(HORA_SAL),hn=hs.split(" ")[0],hx=hs.slice(hn.length+1),
+ b=function(t,f,n){return '<div class="tj sale"><div class="h">'+hn+'<small>'+hx+'</small></div><div class="d"><b style="font-weight:500">'+f+'</b><br>'+t+' · '+n+(n===1?" pieza":" piezas")+'</div></div>'};
+ if(s.cerrado&&!EDITANDO)return '<div class="tj sale"><div class="h">'+hn+'<small>'+hx+'</small></div><div class="d"><b style="font-weight:500">Pedidos cerrados</b><br>Se reciben de las '+hs+' a '+artHora(HORA_LIM)+horaTxt(HORA_LIM)+' Vuelve a partir de las '+hs+'</div></div>';
+ return(x[0]?b("Pan dulce",fecha(base),x[0]):"")+(x[1]?b("Pan salado, un día después",fecha(diaMas(base,1)),x[1]):"")+'<p class="pista" style="margin:8px 6px 0">Pedidos hasta '+artHora(HORA_LIM)+horaTxt(HORA_LIM)+' · '+(ESC[K_MES]&&ESC[K_MES][2]?"Te lo llevamos":"Lo retiras en la panadería")+'</p>'};
+var pintarPedBase=pintarPed;
+pintarPed=function(){pintarPedBase();var s=salidaBase(),bt=$("enviar"),r=tot(),no=!r.pz||(s.cerrado&&!EDITANDO);
+ if(ESC[K_MES])$("r-des").previousElementSibling.textContent="Tu descuento ("+ESC[K_MES][1]+"%)";
+ bt.textContent=EDITANDO?"Guardar cambios":"Enviar pedido";bt.disabled=no;bt.style.opacity=no?.5:1;
+ if(EDITANDO)$("ped-sale").insertAdjacentHTML("afterbegin",'<p class="pista" style="margin:0 6px 10px">Estás cambiando el pedido <b style="font-weight:500">'+esc2(EDITANDO.folio)+'</b>. <button id="ed-x" style="background:none;border:0;padding:0 2px;min-height:44px;font:inherit;color:var(--oliva);text-decoration:underline;cursor:pointer">Descartar cambios</button></p>')};
+function enviarPedido(){var r=tot();if(!r.pz)return;var s=salidaBase(),ed=EDITANDO;
+ if(s.cerrado&&!ed){aviso("Pedidos cerrados",'<div class="cam">Los pedidos se reciben de las '+horaTxt(HORA_SAL)+' a '+artHora(HORA_LIM)+horaTxt(HORA_LIM)+' Vuelve a partir de las '+horaTxt(HORA_SAL)+'</div>');return}
+ var base=ed?ed.base:s.base,hs=haySal();
+ confirmar(ed?"¿Seguro que deseas guardar los cambios del pedido "+ed.folio+"?":"¿Seguro que deseas enviar este pedido?",
+  '<div class="cam"><b style="font-weight:500">'+r.pz+" piezas · "+m(r.t)+" provisional</b>"+(hs[0]?"<br>Pan dulce: sale el "+fechaMin(base)+", "+horaTxt(HORA_SAL):"")+(hs[1]?"<br>Pan salado: sale el "+fechaMin(diaMas(base,1))+", "+horaTxt(HORA_SAL):"")+"</div>",
+  ed?"Sí, guardar cambios":"Sí, enviar pedido","No, seguir revisando",function(){
+  var lin=lineasQ(),nota=$("ped-nota").value,fotos=CAT.map(function(c,k){return Q[k]&&c[3]?'<img alt="" src="'+c[3]+'">':""}).filter(Boolean).slice(0,5).join("");
+  var pr=(ed?sb.rpc("soc_cambiar_pedido",{p_id:ed.id,p_lineas:lin,p_nota:nota}):sb.rpc("soc_crear_pedido",{p_lineas:lin,p_nota:nota})).then(function(x){return x},function(e){return{error:e}});
+  trans(800,ed?"Guardando tus cambios":"Enviando tu pedido",async function(){
+   var x=await pr;
+   if(x.error){go("cliente");vista("ped");aviso(ed?"No se guardaron los cambios":"No se envió el pedido",'<div class="cam">'+esc2(msgPedido(x.error))+'</div>');return}
+   var o=x.data||{};
+   $("ok-res").textContent=r.pz+" piezas · "+m(r.t)+" provisional";$("ok-fol").textContent="Folio "+o.folio;
+   $("ok-sale").innerHTML=(o.salida_dulce?"Pan dulce: sale el "+fechaMin(deISO(o.salida_dulce))+" a las "+horaTxt(HORA_SAL):"")+(o.salida_dulce&&o.salida_salado?"<br>":"")+(o.salida_salado?"Pan salado: sale el "+fechaMin(deISO(o.salida_salado))+" a las "+horaTxt(HORA_SAL):"");
+   $("ok-fotos").innerHTML=fotos;$("v-ok").querySelector(".cab h2").textContent=ed?"Pedido actualizado":"Pedido enviado";
+   Q={};$("ped-nota").value="";EDITANDO=null;go("cliente");vista("ok");cargarPedidos()})})}
+function cambiarPedido(id){var p=PEDS.filter(function(x){return x.id===id})[0];if(!p)return;
+ if(!puedeCambiar(p)){aviso("Ya no se puede cambiar",'<div class="cam">Ya pasó la hora límite de este pedido o la panadería ya lo aceptó.</div>');cargarPedidos();return}
+ var ix={},fuera=[];CAT.forEach(function(c,i){ix[c[4]]=i});Q={};
+ (p.soc_pedido_lineas||[]).forEach(function(l){var i=ix[l.producto_id];if(i!==undefined)Q[i]=(Q[i]||0)+l.cantidad;else fuera.push(l.nombre)});
+ EDITANDO={id:p.id,folio:p.folio,base:deISO(p.fecha_base)};$("ped-nota").value=p.nota||"";
+ filtro="todo";document.querySelectorAll("#filtros .chip").forEach(function(x){x.classList.toggle("on",x.dataset.f==="todo")});vista("ped");
+ if(fuera.length)aviso("Hay productos que ya no están",'<div class="cam">'+esc2(fuera.join(", "))+' ya no está en el catálogo y se quitó de este pedido.</div>')}
+function cancelarPedido(id){var p=PEDS.filter(function(x){return x.id===id})[0],h=HIST.filter(function(x){return x.id===id})[0];if(!p||!h)return;
+ confirmar("¿Seguro que deseas cancelar este pedido?",'<div class="cam"><b style="font-weight:500">'+esc2(p.folio)+'</b> · '+h.pz+' piezas · '+m(h.t)+'<br>Iba a salir el '+fechaMin(deISO(p.fecha_base))+'</div>',"Sí, cancelar pedido","No, mantenerlo",async function(){
+  var x;try{x=await sb.rpc("soc_cancelar_pedido",{p_id:id})}catch(e){x={error:e}}
+  if(x.error){aviso("No se canceló el pedido",'<div class="cam">'+esc2(msgPedido(x.error).replace("; tu pedido sigue en el carrito",""))+'</div>');return}
+  if(EDITANDO&&EDITANDO.id===id){EDITANDO=null;Q={};$("ped-nota").value=""}
+  await cargarPedidos()})}
+document.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;
+ if(b.dataset.xcam)cambiarPedido(b.dataset.xcam);
+ else if(b.dataset.xcan)cancelarPedido(b.dataset.xcan);
+ else if(b.id==="ed-x"){EDITANDO=null;Q={};$("ped-nota").value="";filtro="pedidos";document.querySelectorAll("#filtros .chip").forEach(function(x){x.classList.toggle("on",x.dataset.f==="pedidos")});vista("cat")}
+ else if(b.dataset.f==="pedidos"||b.id==="ir-hist")cargarPedidos()});
 </script>
 </body>
 </html>
