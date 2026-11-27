@@ -836,6 +836,7 @@ body:has(#screen-produccion.on.real) .proto,body:has(#screen-cliente.on.real) .p
   <div class="hoja">
     <h3 id="pg-t">Registrar pago</h3>
     <p id="pg-x"></p>
+    <div id="pg-mo-w" style="display:none"><div class="lab">Monto del pago</div><div class="f"><label for="pg-mo">Monto del pago</label><input type="text" id="pg-mo" inputmode="decimal" enterkeyhint="done" autocomplete="off" placeholder="$0"></div><div class="pista" id="pg-mo-p" style="margin-top:-6px"></div></div>
     <div class="lab">¿Cómo se pagó?</div>
     <div class="per" id="pg-met"><button class="chip" data-pm="Transferencia">Transferencia</button><button class="chip" data-pm="Efectivo">Efectivo</button><button class="chip" data-pm="Depósito">Depósito</button><button class="chip" data-pm="Tarjeta">Tarjeta</button></div>
     <div class="f"><label for="pg-ref">Referencia</label><input type="text" id="pg-ref" placeholder="Referencia o folio (opcional)" autocomplete="off"></div>
@@ -844,7 +845,7 @@ body:has(#screen-produccion.on.real) .proto,body:has(#screen-cliente.on.real) .p
     <label class="foto" for="pg-foto"><img id="pg-prev" alt="Vista previa del comprobante"><span id="pg-ph">Toca para subir la foto del comprobante</span></label>
     <input type="file" id="pg-foto" accept="image/*" style="position:absolute;left:-9999px">
     <div class="pista" id="pg-cx" style="margin-top:-8px"></div>
-    <button class="btn-primary" id="pg-ok">Guardar pago</button>
+    <button class="btn-primary" id="pg-ok">Registrar pago</button>
     <div class="login-error" id="pg-err" role="alert"></div>
     <button class="sec" id="pg-no">Cancelar</button>
   </div>
@@ -886,6 +887,7 @@ body:has(#screen-produccion.on.real) .proto,body:has(#screen-cliente.on.real) .p
     </div>
     <div class="cuerpo">
       <div class="chips" id="filtros"><button class="chip on" data-f="todo">Todo</button><button class="chip" data-f="salado">Pan salado</button><button class="chip" data-f="dulce">Pan dulce</button><button class="chip" data-f="pedidos">Mis pedidos</button></div>
+      <div id="cta-av"></div>
       <div id="rep"></div>
       <div id="cat"></div>
     </div>
@@ -1246,7 +1248,7 @@ function permisos(){vcBar();var lim=rol!=="dueno";if(lim&&/^(config|mant|bit)$/.
  var act=document.querySelector(".apanel.on");if(lim&&act&&/a-(config|mant|bit)/.test(act.id))atab("resumen")}
 function puede(){if(rol==="aux"){conf("Tu nivel no permite este cambio","Los auxiliares ven ventas y pedidos y registran pagos. Pide a un Gerente o al Dueño que lo haga.",null);$("cf-ok").style.display="none";return false}return true}
 function pAdmin(){pBit();permisos();pConfig();var c=cuenta();
- var IT=[],deb=window.COB_REAL?debReal():CIES.oct.l.filter(function(o){return !o.pag}),dt=0;deb.forEach(function(o){dt+=o.t});
+ var IT=[],deb=window.COB_REAL?debReal():CIES.oct.l.filter(function(o){return !o.pag}),dt=0;deb.forEach(function(o){dt+=o.t-(o.pagado||0)});
  var nAt=window.nAtr?nAtr(c):(tarde?c.pend:0);if(nAt)IT.push({n:0,t:nAt+(nAt===1?" pedido no salió":" pedidos no salieron")+" a las 7:30",d:"Producción lleva "+(window.retrasoTxt?retrasoTxt():"20 minutos")+" de retraso. Avisa a los socios.",b:"Ver pedidos",g:"pedidos"});
  if(c.nuevo)IT.push({n:1,t:c.nuevo+(c.nuevo===1?" pedido sin aceptar":" pedidos sin aceptar"),d:"Producción todavía no lo confirma: "+PED.filter(function(p){return p.e==="nuevo"}).map(function(p){return p.c}).filter(function(x,i,a){return a.indexOf(x)===i}).join(", ")+".",b:"Revisar",g:"pedidos"});
  var aj=PED.filter(function(p){return p.aj&&!p.aj.ok});if(aj.length)IT.push({n:1,t:aj.length+(aj.length===1?" ajuste por aprobar":" ajustes por aprobar"),d:aj.map(function(p){return p.c}).filter(function(x,i,a){return a.indexOf(x)===i}).join(", ")+": producción cambió cantidades.",b:"Aprobar",g:"pedidos"});
@@ -1273,12 +1275,12 @@ function verNota(){document.querySelector(".nota-bar span").textContent="Así la
  $("nota-c").innerHTML='<div class="cab"><span class="b k1"></span><div class="cab-fila"><div><img class="lg" alt="EGO" src="'+document.querySelector(".lg-logo").src+'"><small>Programa de Socios · nota de '+mes.toLowerCase()+'</small><h2>'+esc2(x.n)+'</h2></div><span class="estado '+(x.pag?"ok":"")+'" style="background:var(--crema)">'+(M.c?"Provisional":x.pag?"Pagada":"Por cobrar")+'</span></div></div>'
   +'<div class="gasto"><div class="v">'+m(x.t)+'</div><div class="l">Total a pagar · escalón '+x.d+'% · folio NOTA-2026-'+(cm==="oct"?"10":"11")+'-0'+(ci+1)+'</div></div>'
   +'<div class="tit">Lo que compraste</div><div class="tj">'+L.map(function(l){var f=fotoDe(l[0]);return '<div class="rw">'+(f?'<img class="th" alt="" src="'+f+'">':'')+'<div style="flex:1"><div class="n">'+l[0]+'</div><div class="m">'+l[1]+' piezas × $'+l[2]+'</div></div><div class="v">'+m(l[1]*l[2])+'</div></div>'}).join("")+'</div>'
-  +'<div class="tit">Resumen</div><div class="tj res"><div class="l"><span>Valor a precio público</span><span>'+m(x.pub)+'</span></div><div class="l"><span>Tu descuento ('+x.d+'%)</span><span>('+m(x.pub-x.t)+')</span></div><div class="l g"><span>Total a pagar</span><span>'+m(x.t)+'</span></div><small>'+(x.ent?"Incluye entrega gratis en tu puerta cada mañana.":"Retiras en la panadería.")+'</small></div>'
+  +'<div class="tit">Resumen</div><div class="tj res"><div class="l"><span>Valor a precio público</span><span>'+m(x.pub)+'</span></div><div class="l"><span>Tu descuento ('+x.d+'%)</span><span>('+m(x.pub-x.t)+')</span></div><div class="l g"><span>Total a pagar</span><span>'+m(x.t)+'</span></div>'+(window.saldoHtml?saldoHtml(x):'')+'<small>'+(x.ent?"Incluye entrega gratis en tu puerta cada mañana.":"Retiras en la panadería.")+'</small></div>'
   +(x.pag?'<div class="tit">Pago registrado</div><div class="tj dat">'+pagoTxt(x).split(" · ").join("<br>")+(x.pm&&x.pm.foto?'<img class="fotoG" alt="Comprobante de pago" src="'+x.pm.foto+'">':'')+'</div>'
    :'<div class="tit">Datos para tu pago</div><div class="tj"><div class="rw"><div class="m">Banco</div><div class="v">Santander</div></div><div class="rw"><div class="m">Titular</div><div class="v">Ego Restaurante</div></div><div class="rw"><div class="m">Cuenta</div><div class="v">••-•••••922-1</div></div><div class="rw"><div class="m">CLABE</div><div class="v">••••••••••••••2214</div></div></div>')
   +'<p class="pie">Emite RESTAURANTE EGO, S.A. DE C.V. · Panadería EGO · Tel. 998 331 1502</p>';
  $("nota").classList.add("on");$("nota").scrollTop=0}
-function pCierre(){var M=CIES[cm];CIE=M.l;if(ci>=CIE.length)ci=0;var tt=0,pg=0;CIE.forEach(function(o){tt+=o.t;if(o.pag)pg+=o.t});
+function pCierre(){var M=CIES[cm];CIE=M.l;if(ci>=CIE.length)ci=0;var tt=0,pg=0;CIE.forEach(function(o){tt+=o.t;pg+=o.pag?o.t:(o.pagado||0)});
  $("c-mes").innerHTML=["oct","nov"].map(function(k){return '<button class="chip'+(k===cm?" on":"")+'" data-cm="'+k+'">'+CIES[k].t+'</button>'}).join("");
  $("ci-tot").innerHTML='<div class="v">'+m(tt)+'</div><div class="l">'+(M.c?"Acumulado provisional del mes · el escalón todavía puede subir":"Cobrado "+m(pg)+" · por cobrar "+m(tt-pg))+'</div>'+(M.c?'':'<div class="avc"><i style="width:'+(tt?pg/tt*100:0)+'%"></i></div>');
  var nc=CIE.filter(function(o){return !o.pag}).length;
@@ -1349,7 +1351,7 @@ document.addEventListener("click",function(e){var b=e.target.closest("button");i
  else if(b.dataset.cf){cfil=b.dataset.cf;pCierre()}
  else if(b.dataset.pm){pmet=b.dataset.pm;document.querySelectorAll("#pg-met .chip").forEach(function(c){c.classList.toggle("on",c===b)})}
  else if(b.id==="pg-no")$("pago").classList.remove("on")
- else if(b.id==="pg-ok"){if(!pmet){$("pg-err").textContent="Elige cómo se pagó.";return}if(!pfoto){$("pg-err").textContent="Sube la foto del comprobante.";return}var px=CIE[ci],rf0=$("pg-ref").value.trim(),rc0=$("pg-rec").value.trim();conf("¿Seguro que deseas registrar este pago?",'<div class="cam"><b style="font-weight:500">'+esc2(px.n)+" · "+m(px.t)+"</b><br>"+pmet+(rf0?" · ref. "+esc2(rf0):"")+(rc0?"<br>Recibió "+esc2(rc0):"")+"</div>",function(){px.pag=true;PAGOS.push({fe:HOY.getDate()+" de "+MES[HOY.getMonth()],s:px.n,mo:px.t,met:pmet,ref:$("pg-ref").value.trim(),rec:$("pg-rec").value.trim(),mes:CIES[cm].t,foto:pfoto,k:px});px.pm={met:pmet,ref:$("pg-ref").value.trim(),rec:$("pg-rec").value.trim(),foto:pfoto,fe:HOY.getDate()+" de "+MES[HOY.getMonth()]};bit("Pagos","Registró pago de "+px.n+" · "+m(px.t)+" · "+pmet);$("pago").classList.remove("on");pCierre()})}
+ else if(b.id==="pg-ok"){if(window.COB_REAL&&window.pagoReal&&CIE[ci]&&CIE[ci].real){pagoReal();return}if(!pmet){$("pg-err").textContent="Elige cómo se pagó.";return}if(!pfoto){$("pg-err").textContent="Sube la foto del comprobante.";return}var px=CIE[ci],rf0=$("pg-ref").value.trim(),rc0=$("pg-rec").value.trim();conf("¿Seguro que deseas registrar este pago?",'<div class="cam"><b style="font-weight:500">'+esc2(px.n)+" · "+m(px.t)+"</b><br>"+pmet+(rf0?" · ref. "+esc2(rf0):"")+(rc0?"<br>Recibió "+esc2(rc0):"")+"</div>",function(){px.pag=true;PAGOS.push({fe:HOY.getDate()+" de "+MES[HOY.getMonth()],s:px.n,mo:px.t,met:pmet,ref:$("pg-ref").value.trim(),rec:$("pg-rec").value.trim(),mes:CIES[cm].t,foto:pfoto,k:px});px.pm={met:pmet,ref:$("pg-ref").value.trim(),rec:$("pg-rec").value.trim(),foto:pfoto,fe:HOY.getDate()+" de "+MES[HOY.getMonth()]};bit("Pagos","Registró pago de "+px.n+" · "+m(px.t)+" · "+pmet);$("pago").classList.remove("on");pCierre()})}
  else if(b.id==="c-pdf")verNota();
  else if(b.classList.contains("login-admin-link")){dest=b.textContent.indexOf("Admin")===0?"admin":"produccion";$("ac-t").textContent=dest==="admin"?"Administración":"Producción";$("ac-user").value="";$("ac-pass").value="";$("ac-err").textContent="";$("acceso").classList.add("on");$("ac-user").focus()}
  else if(b.id==="ac-no")$("acceso").classList.remove("on");
@@ -1674,31 +1676,31 @@ function nivelYo(){return window.PERFIL&&PERFIL.nivel||""}
 function lineasNota(L){return(L||[]).map(function(l){return{nombre:l.nombre,pz:+l.piezas,ps:+l.precio_socio,im:+l.importe}})}
 function socioCob(s,M){var no=s.nota,ca=s.calculo||{},x=no||ca;
  return{real:true,n:s.nombre,socio:s.socio_id,f:M.f,nota:no||null,id:no?no.id:null,folio:no?no.folio:"",limite:no?no.limite:"",
-  pub:+x.total_publico||0,d:+x.descuento||0,t:+x.total||0,ent:!!x.entrega,pz:+x.piezas||0,pag:!!(no&&no.estado==="pagada"),
-  aj:+s.ajustes||0,L:lineasNota(x.lineas),est:no?(no.estado==="pagada"?"Pagado":"Por cobrar"):(M.en?"En curso":"Por cerrar")}}
+  pub:+x.total_publico||0,d:+x.descuento||0,t:+x.total||0,ent:!!x.entrega,pz:+x.piezas||0,pag:!!(no&&no.estado==="pagada"),pagado:no?+no.pagado||0:0,pagos:no&&no.pagos||[],bloquea:no&&no.bloquea||"",pagada:no&&no.pagada||"",
+  aj:+s.ajustes||0,L:lineasNota(x.lineas),est:no?(no.estado==="pagada"?"Pagado":window.vencida&&vencida(no.limite)?"Vencida":"Por cobrar"):(M.en?"En curso":"Por cerrar")}}
 async function cargarCobranza(){var nv=nivelYo();
  if(!sb||!PERFIL||["dueno","gerente","aux"].indexOf(nv)<0){cobVuelta++;COB_REAL=false;COB_ERR="";CIES=JSON.parse(JSON.stringify(CIES_EJEMPLO));cm="oct";ci=0;CIE=CIES.oct.l;
   if(nv==="socio"&&sb)cargarNotasSocio();else{NOTAS_SOC=[];NOTAS_ERR=false}return}
  NOTAS_SOC=[];var v=++cobVuelta;if(!COB_REAL){COB_REAL=true;COB_ERR="cargando";CIES={};CIE=[];pCierre()}
- try{var r=await Promise.all([sb.rpc("soc_cobranza"),sb.from("soc_config").select("clave,valor")]);
+ try{var r=await Promise.all([sb.rpc("soc_cobranza"),sb.from("soc_config").select("clave,valor"),sb.from("soc_pagos").select("id,nota_id,socio_id,monto,forma,referencia,recibio,foto,registrado,registrado_nombre,quitado,quitado_nombre,motivo,soc_notas(folio,mes),soc_socios(nombre)").order("registrado",{ascending:false}).limit(300)]);
   if(v!==cobVuelta)return;if(r[0].error)throw r[0].error;
-  CFG_PAGO=cfgDe(r[1].data);var X=r[0].data||{},C={};
+  CFG_PAGO=cfgDe(r[1].data);var X=r[0].data||{},C={};window.COB_HOY=String(X.hoy||"").slice(0,10);window.BLOQ=X.bloqueados||[];window.PAGOS_R=r[2].error?null:(r[2].data||[]);
   (X.meses||[]).forEach(function(M){var o={f:String(M.mes).slice(0,10),en:!!M.en_curso,cerrable:!!M.cerrable,desde:M.cierre_desde,real:true};
    o.t=mesTit(o.f)+(o.en?" · en curso":"");o.c=o.en?1:0;o.l=(M.socios||[]).map(function(x){return socioCob(x,o)});
    o.pc=o.l.filter(function(x){return !x.nota}).length;C[o.f.slice(0,7)]=o});
   var ks=Object.keys(C);CIES=C;COB_ERR="";
   if(!C[cm]){var an=ks.filter(function(k){return !C[k].en&&C[k].l.length});cm=an.length?an[an.length-1]:(ks[ks.length-1]||"");ci=0}
  }catch(e){if(v!==cobVuelta)return;COB_ERR="error"}
- pCierre();pAdmin()}
+ pCierre();pAdmin();if(window.trasCobranza)trasCobranza()}
 async function cargarNotasSocio(){var v=++cobVuelta;
- try{var r=await Promise.all([sb.from("soc_notas").select("id,folio,mes,piezas,total_publico,descuento,total,entrega,limite,estado,soc_nota_lineas(nombre,tipo,piezas,precio_publico,precio_socio,importe)").neq("estado","anulada").order("mes",{ascending:false}),
-   sb.from("soc_config").select("clave,valor")]);
-  if(v!==cobVuelta)return;if(r[0].error)throw r[0].error;CFG_PAGO=cfgDe(r[1].data);NOTAS_ERR=false;
+ try{var r=await Promise.all([sb.from("soc_notas").select("id,folio,mes,piezas,total_publico,descuento,total,entrega,limite,estado,pagado,pagada,soc_nota_lineas(nombre,tipo,piezas,precio_publico,precio_socio,importe),soc_pagos(id,monto,forma,referencia,recibio,foto,registrado)").neq("estado","anulada").order("mes",{ascending:false}),
+   sb.from("soc_config").select("clave,valor"),sb.rpc("soc_mi_cuenta")]);
+  if(v!==cobVuelta)return;if(r[0].error)throw r[0].error;CFG_PAGO=cfgDe(r[1].data);NOTAS_ERR=false;window.CUENTA=r[2]&&!r[2].error?r[2].data:null;
   var nom=PERFIL?((PERFIL.soc_socios&&PERFIL.soc_socios.nombre)||PERFIL.nombre):"";
   NOTAS_SOC=(r[0].data||[]).map(function(no){return{real:true,n:nom,f:String(no.mes).slice(0,10),nota:no,id:no.id,folio:no.folio,limite:no.limite,
-   pub:+no.total_publico,d:+no.descuento,t:+no.total,ent:!!no.entrega,pz:+no.piezas,pag:no.estado==="pagada",L:lineasNota(no.soc_nota_lineas)}})}
+   pub:+no.total_publico,d:+no.descuento,t:+no.total,ent:!!no.entrega,pz:+no.piezas,pag:no.estado==="pagada",pagado:+no.pagado||0,pagada:no.pagada||"",pagos:no.soc_pagos||[],L:lineasNota(no.soc_nota_lineas)}})}
  catch(e){if(v!==cobVuelta)return;NOTAS_SOC=[];NOTAS_ERR=true}
- if(filtro==="pedidos")pintar()}
+ if(filtro==="pedidos")pintar();if(window.trasNotasSocio)trasNotasSocio()}
 function debReal(){var r=[];Object.keys(CIES).forEach(function(k){(CIES[k].l||[]).forEach(function(o){if(o.nota&&!o.pag)r.push(o)})});return r}
 function debMes(deb){var ms=deb.map(function(o){return o.f}).filter(function(x,i,a){return a.indexOf(x)===i});return ms.length===1?" de "+mesSolo(ms[0]):""}
 function cierreUrg(IT){Object.keys(CIES).forEach(function(k){var M=CIES[k];if(!M.cerrable||!M.pc)return;
@@ -1712,7 +1714,7 @@ pCierre=function(){if(!COB_REAL)return pCierreBase();
    :COB_ERR?'<div class="tj vacio" role="alert">No se pudo cargar la cobranza. Revisa tu internet e intenta de nuevo.<div class="acc" style="margin-top:14px"><button data-cobr="1">Reintentar</button></div></div>'
    :'<div class="tj vacio">Todavía no hay pedidos de socios.</div>';pPagos();return}
  $("ci-tot").style.display="";CIE=M.l;if(ci>=CIE.length)ci=0;
- var tt=0,pg=0;CIE.forEach(function(o){tt+=o.t;if(o.pag)pg+=o.t});
+ var tt=0,pg=0;CIE.forEach(function(o){tt+=o.t;pg+=o.pag?o.t:(o.pagado||0)});
  var hs=horaTxt(HORA_SAL),cuando=M.cerrable?"":" · se cierra el "+ddmm(M.desde)+" a las "+hs,
   puede=["dueno","gerente"].indexOf(nivelYo())>=0&&M.cerrable&&M.pc;
  $("ci-tot").innerHTML=!M.pc&&CIE.length?'<div class="v">'+m(tt)+'</div><div class="l">Cobrado '+m(pg)+' · por cobrar '+m(tt-pg)+'</div><div class="avc"><i style="width:'+(tt?pg/tt*100:0)+'%"></i></div>'
@@ -1721,11 +1723,11 @@ pCierre=function(){if(!COB_REAL)return pCierreBase();
  $("c-fil").innerHTML=todo?[["todos","Todos ("+CIE.length+")"],["cobrar","Por cobrar ("+nc+")"],["pagados","Pagados ("+(CIE.length-nc)+")"]].map(function(f){return '<button class="chip'+(cfil===f[0]?" on":"")+'" data-cf="'+f[0]+'">'+f[1]+'</button>'}).join("")
   :puede?'<div class="acc" style="width:100%"><button class="p" data-cmes="'+M.f+'">Cerrar '+mesSolo(M.f)+'</button></div>':"";
  var vis=CIE.map(function(o,i){return[o,i]}).filter(function(z){return !todo||cfil==="todos"||(cfil==="cobrar")===!z[0].pag});
- $("c-lista").innerHTML=vis.length?vis.map(function(z){var o=z[0],i=z[1];return '<div class="tj cn"><div class="ped-top"><div class="n" style="font-size:20px">'+esc2(o.n)+'</div><span class="estado '+(o.pag?"ok":o.nota?"nuevo":"")+'">'+o.est+'</span></div><div class="tot">'+m(o.t)+'</div>'
+ $("c-lista").innerHTML=vis.length?vis.map(function(z){var o=z[0],i=z[1];return '<div class="tj cn"><div class="ped-top"><div class="n" style="font-size:20px">'+esc2(o.n)+'</div><span class="estado '+(o.pag?"ok":o.est==="Vencida"?"atr":o.nota?"nuevo":"")+'">'+o.est+'</span></div><div class="tot">'+m(o.t)+'</div>'
    +'<div class="dt">Escalón '+o.d+'% · valor público '+m(o.pub)+' · '+(o.ent?"entrega gratis":"retira")+'</div>'
-   +(o.nota?'<div class="dt">'+esc2(o.folio)+' · paga a más tardar el '+ddmm(o.limite)+'</div>':'')
+   +(o.nota?'<div class="dt">'+esc2(o.folio)+(o.pag?' · pagada'+(o.pagada&&window.fCun?' el '+fCun(o.pagada).split(" · ")[0]:''):' · paga a más tardar el '+ddmm(o.limite))+'</div>'+(window.cobExtra?cobExtra(o):''):'')
    +(o.aj?'<div class="dt">'+o.aj+(o.aj===1?" ajuste por aprobar":" ajustes por aprobar")+': apruébalos antes de cerrar</div>':'')
-   +'<div class="acc"><button data-vn="'+i+'">Ver nota</button>'+(o.nota&&!o.pag&&nivelYo()==="dueno"?'<button data-rn="'+i+'">Reabrir nota</button>':'')+'</div></div>'}).join("")
+   +'<div class="acc"><button data-vn="'+i+'">Ver nota</button>'+(o.nota&&!o.pag&&["dueno","gerente","aux"].indexOf(nivelYo())>=0?'<button class="p" data-ci="'+i+'">Registrar pago</button>':'')+(o.nota&&!o.pag&&!o.pagado&&nivelYo()==="dueno"?'<button data-rn="'+i+'">Reabrir nota</button>':'')+'</div></div>'}).join("")
   :'<div class="tj vacio">'+(CIE.length?"No hay notas en esta vista.":"Sin pedidos de socios en este mes.")+'</div>';
  if($("a-per").innerHTML)pPer();pPagos()};
 var verNotaBase=verNota;
@@ -1735,11 +1737,11 @@ function notaVer(x,bar){var c=CFG_PAGO;document.querySelector(".nota-bar span").
   ||'<div class="rw"><div class="m">Pide los datos de pago en la panadería.</div></div>';
  if(x.nota&&x.limite)pago+='<div class="rw"><div class="m">Paga a más tardar</div><div class="v">'+ddmm(x.limite)+'</div></div>';
  var fac=[c.fact_correo,c.fact_tel].filter(Boolean).map(esc2).join(" · ");
- $("nota-c").innerHTML='<div class="cab"><span class="b k1"></span><div class="cab-fila"><div><img class="lg" alt="EGO" src="'+document.querySelector(".lg-logo").src+'"><small>Programa de Socios · nota de '+mesNom(x.f)+'</small><h2>'+esc2(x.n)+'</h2></div><span class="estado '+(x.pag?"ok":"")+'" style="background:var(--crema)">'+(x.nota?(x.pag?"Pagada":"Por cobrar"):"Provisional")+'</span></div></div>'
+ $("nota-c").innerHTML='<div class="cab"><span class="b k1"></span><div class="cab-fila"><div><img class="lg" alt="EGO" src="'+document.querySelector(".lg-logo").src+'"><small>Programa de Socios · nota de '+mesNom(x.f)+'</small><h2>'+esc2(x.n)+'</h2></div><span class="estado '+(x.pag?"ok":"")+'" style="background:var(--crema)">'+(x.nota?(x.pag?"Pagada":window.vencida&&vencida(x.limite)?"Vencida":"Por cobrar"):"Provisional")+'</span></div></div>'
   +'<div class="gasto"><div class="v">'+m(x.t)+'</div><div class="l">Total a pagar · escalón '+x.d+'%'+(x.folio?' · folio '+esc2(x.folio):' · el mes todavía no se cierra')+'</div></div>'
   +'<div class="tit">Lo que compraste</div><div class="tj">'+(x.L.length?x.L.map(function(l){var f=fotoDe(l.nombre);return '<div class="rw">'+(f?'<img class="th" alt="" src="'+f+'">':'')+'<div style="flex:1"><div class="n">'+esc2(l.nombre)+'</div><div class="m">'+l.pz+(l.pz===1?" pieza × ":" piezas × ")+m(l.ps)+'</div></div><div class="v">'+m(l.im)+'</div></div>'}).join(""):'<div class="rw"><div class="m">Sin pedidos en este mes.</div></div>')+'</div>'
-  +'<div class="tit">Resumen</div><div class="tj res"><div class="l"><span>Valor a precio público</span><span>'+m(x.pub)+'</span></div><div class="l"><span>Tu descuento ('+x.d+'%)</span><span>('+m(x.pub-x.t)+')</span></div><div class="l g"><span>Total a pagar</span><span>'+m(x.t)+'</span></div><small>'+(x.ent?"Incluye entrega gratis en tu puerta cada mañana.":"Retiras en la panadería.")+'</small></div>'
-  +(x.pag?'':'<div class="tit">Datos para tu pago</div><div class="tj">'+pago+'</div>')
+  +'<div class="tit">Resumen</div><div class="tj res"><div class="l"><span>Valor a precio público</span><span>'+m(x.pub)+'</span></div><div class="l"><span>Tu descuento ('+x.d+'%)</span><span>('+m(x.pub-x.t)+')</span></div><div class="l g"><span>Total a pagar</span><span>'+m(x.t)+'</span></div>'+(window.saldoHtml?saldoHtml(x):'')+'<small>'+(x.ent?"Incluye entrega gratis en tu puerta cada mañana.":"Retiras en la panadería.")+'</small></div>'
+  +(window.pagosNotaHtml?pagosNotaHtml(x):'')+(x.pag?'':'<div class="tit">Datos para tu pago</div><div class="tj">'+pago+'</div>')
   +'<p class="pie">Emite RESTAURANTE EGO, S.A. DE C.V. · Panadería EGO'+(fac?' · Facturación: '+fac:'')+'</p>';
  $("nota").classList.add("on");$("nota").scrollTop=0}
 var pintarHistBase=pintarHist;
@@ -1747,7 +1749,7 @@ pintarHist=function(){return notasSocioHtml()+pintarHistBase()};
 function notasSocioHtml(){if(!sb||nivelYo()!=="socio")return "";
  if(NOTAS_ERR)return '<div class="tj hist" role="alert"><div class="de">No se pudieron cargar tus notas. Revisa tu internet.</div></div>';
  if(!NOTAS_SOC.length)return "";
- return '<div class="sh" style="margin:6px 4px 12px">Tus notas</div>'+NOTAS_SOC.map(function(x,i){return '<div class="tj hist"><div class="ped-top"><div class="fe">Nota de '+mesNom(x.f)+'</div><span class="estado '+(x.pag?"ok":"nuevo")+'">'+(x.pag?"Pagada":"Por cobrar")+'</span></div><div class="de">'+esc2(x.folio)+' · '+x.pz+' piezas · '+m(x.t)+'</div>'+(x.pag?'':'<div class="de">Paga a más tardar el '+ddmm(x.limite)+'</div>')+'<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-vns="'+i+'">Ver nota</button></div></div>'}).join("")
+ return '<div class="sh" style="margin:6px 4px 12px">Tus notas</div>'+NOTAS_SOC.map(function(x,i){return '<div class="tj hist"><div class="ped-top"><div class="fe">Nota de '+mesNom(x.f)+'</div><span class="estado '+(x.pag?"ok":window.vencida&&vencida(x.limite)?"atr":"nuevo")+'">'+(x.pag?"Pagada":window.vencida&&vencida(x.limite)?"Vencida":"Por cobrar")+'</span></div><div class="de">'+esc2(x.folio)+' · '+x.pz+' piezas · '+m(x.t)+'</div>'+(x.pag?'':(x.pagado>0&&window.mm?'<div class="de">Abonado '+mm(x.pagado)+' · saldo '+mm(x.t-x.pagado)+'</div>':'')+'<div class="de">Paga a más tardar el '+ddmm(x.limite)+'</div>')+'<div style="display:flex;gap:8px;margin-top:12px"><button class="mini" data-vns="'+i+'">Ver nota</button></div></div>'}).join("")
   +'<div class="sh" style="margin:22px 4px 12px">Tus pedidos</div>'}
 function cerrarMes(f){var k=String(f).slice(0,7),M=CIES[k];if(!COB_REAL||!M)return;
  var ls=M.l.filter(function(o){return !o.nota}),tt=0;ls.forEach(function(o){tt+=o.t});if(!ls.length)return;var mn=mesSolo(f);
@@ -1766,6 +1768,166 @@ document.addEventListener("click",function(e){var b=e.target.closest("button");i
  else if(b.dataset.rn)reabrirNota(+b.dataset.rn);
  else if(b.dataset.vns){var x=NOTAS_SOC[+b.dataset.vns];if(x)notaVer(x,"Tu nota mensual")}
  else if(b.dataset.cobr)cargarCobranza()});
+</script>
+<style>
+/* Día 6: pagos, abonos y bloqueo */
+#fm.sobre{z-index:45}
+.pgth{flex:none;width:56px;height:56px;padding:0;border:0;border-radius:14px;overflow:hidden;background:var(--campo);cursor:pointer}
+.pgth img{display:block;width:100%;height:100%;object-fit:cover}
+.pgc .fl img{background:var(--campo)}
+.pgc.qt .mo{text-decoration:line-through;color:var(--gris)}
+.pgc.qt .estado{background:var(--campo);color:var(--gris)}
+.pgc .qx{font-size:14px;line-height:1.45;color:#6E1F14;margin-top:10px}
+.dt.bloq{color:#9B2C1D;font-weight:500}
+.cn .acc{flex-wrap:wrap}.cn .acc button{flex:1 1 30%}
+#cta-av .tj{margin:0 0 14px;padding:16px 18px;font-size:15px;line-height:1.45}
+#cta-av .cta-b{background:#FBEDE8;color:#6E1F14}
+#cta-av .cta-v{background:var(--trigo);color:var(--tinta)}
+#cta-av b{display:block;font-weight:500;font-size:16px;margin-bottom:4px}
+.tj.sale.bloq{background:#FBEDE8}.tj.sale.bloq .d{color:#6E1F14}
+</style>
+<script>
+/* ===== Día 6 (27/11/2026): pagos con abonos, comprobante privado y bloqueo por adeudo =====
+   Dueño, gerente y aux registran pagos o abonos (hasta el saldo) con la foto del comprobante: la foto se comprime,
+   se sube a la carpeta privada soc-comprobantes y soc_registrar_pago la liga a la nota. Solo el dueño quita un pago
+   (soc_quitar_pago, con motivo; queda en el historial). El socio ve sus pagos y sus fotos con enlaces firmados que
+   duran una hora. Con 45 días de adeudo desde el cierre del mes la cuenta se bloquea: la base no deja hacer ni
+   cambiar pedidos (soc__revisa_bloqueo) y aquí se avisa y se apaga el botón; cancelar sí se puede. */
+var COB_HOY="",BLOQ=[],PAGOS_R=[],CUENTA=null,FOTO_URL={},FOTO_T=0,FORMAS=["Transferencia","Efectivo","Depósito","Tarjeta"],
+ PIXEL="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
+function mm(n){n=+n||0;return Math.round(n*100)%100?"$"+n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}):m(n)}
+function hoyIso(){return iso(ahoraCun().f)}
+function vencida(l){var h=COB_HOY||(CUENTA&&CUENTA.hoy)||hoyIso();return !!l&&h>String(l).slice(0,10)}
+function fCun(ts){if(!ts)return "";var p={};new Intl.DateTimeFormat("en-CA",{timeZone:"America/Cancun",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"})
+ .formatToParts(new Date(String(ts).replace(/(\.\d{3})\d+/,"$1"))).forEach(function(x){p[x.type]=x.value});return p.day+"/"+p.month+"/"+p.year+" · "+horaTxt(p.hour+":"+p.minute).replace(/ /g,"\u00a0")}
+function saldoDe(x){return Math.round((x.t-(x.pagado||0))*100)/100}
+function montoTxt(n){return "$"+(+n).toLocaleString("en-US",{minimumFractionDigits:Math.round(n*100)%100?2:0,maximumFractionDigits:2})}
+function leeMonto(t){t=String(t||"").replace(/[\s$,]/g,"");return /^\d+(\.\d{1,2})?$/.test(t)?+t:NaN}
+function idFoto(){try{if(crypto.randomUUID)return crypto.randomUUID()}catch(e){}var a=new Uint8Array(16);crypto.getRandomValues(a);return Array.prototype.map.call(a,function(b){return("0"+b.toString(16)).slice(-2)}).join("")}
+
+/* Fotos: enlaces firmados de la carpeta privada (una hora), se renuevan a los 45 minutos. */
+async function firmar(ps){if(Date.now()-FOTO_T>45*60000){FOTO_URL={};FOTO_T=Date.now()}
+ ps=(ps||[]).filter(function(p,i,a){return p&&a.indexOf(p)===i&&!FOTO_URL[p]});
+ if(ps.length&&window.sb)try{var r=await sb.storage.from("soc-comprobantes").createSignedUrls(ps,3600);(r&&r.data||[]).forEach(function(x){if(x&&x.signedUrl&&!x.error)FOTO_URL[x.path]=x.signedUrl})}catch(e){}
+ pintaFotos()}
+function pintaFotos(){document.querySelectorAll("img[data-fpath]").forEach(function(im){var u=FOTO_URL[im.getAttribute("data-fpath")];if(u&&im.getAttribute("src")!==u)im.src=u})}
+function fotoImg(p,cl){return '<img'+(cl?' class="'+cl+'"':'')+' alt="Comprobante" loading="lazy" data-fpath="'+esc2(p.foto)+'" src="'+(FOTO_URL[p.foto]||PIXEL)+'">'}
+function trasCobranza(){var ps=[];(PAGOS_R||[]).forEach(function(p){ps.push(p.foto)});
+ Object.keys(CIES||{}).forEach(function(k){(CIES[k].l||[]).forEach(function(o){(o.pagos||[]).forEach(function(p){ps.push(p.foto)})})});firmar(ps)}
+function trasNotasSocio(){var ps=[];(NOTAS_SOC||[]).forEach(function(x){(x.pagos||[]).forEach(function(p){if(!p.quitado)ps.push(p.foto)})});firmar(ps);cuentaUI()}
+function buscaPago(id){var r=null,mira=function(ps,n){(ps||[]).forEach(function(p){if(p.id===id&&!r)r={p:p,n:n||(p.soc_socios&&p.soc_socios.nombre)||""}})};
+ mira(PAGOS_R);if(window.COB_REAL)Object.keys(CIES||{}).forEach(function(k){(CIES[k].l||[]).forEach(function(o){mira(o.pagos,o.n)})});
+ (NOTAS_SOC||[]).forEach(function(x){mira(x.pagos,x.n)});return r}
+
+/* Cobranza: abonos, vencida y bloqueo en cada tarjeta. */
+function cobExtra(o){if(!o.nota||o.pag)return "";var h="",b=(BLOQ||[]).filter(function(z){return z.socio_id===o.socio})[0],
+ hb=b&&o.bloquea&&(COB_HOY||hoyIso())>=String(o.bloquea).slice(0,10);
+ if(o.pagado>0)h+='<div class="dt">Abonado '+mm(o.pagado)+' · saldo '+mm(saldoDe(o))+'</div>';
+ if(hb)h+='<div class="dt bloq">Cuenta bloqueada desde el '+ddmm(b.desde)+': no puede hacer ni cambiar pedidos</div>';
+ else if(vencida(o.limite))h+='<div class="dt">Venció el '+ddmm(o.limite)+(o.bloquea?' · se bloquea el '+ddmm(o.bloquea):'')+'</div>';
+ return h}
+function saldoHtml(x){return x.nota&&!x.pag&&x.pagado>0?'<div class="l"><span>Abonado</span><span>('+mm(x.pagado)+')</span></div><div class="l g"><span>Saldo por pagar</span><span>'+mm(saldoDe(x))+'</span></div>':""}
+function pagosNotaHtml(x){var ps=(x.pagos||[]).filter(function(p){return !p.quitado});if(!ps.length)return "";
+ return '<div class="tit">Pagos registrados</div><div class="tj">'+ps.map(function(p){var fe=fCun(p.registrado).split(" · ")[0];
+   return '<div class="rw"><button class="pgth" data-pvr="'+esc2(p.id)+'" aria-label="Ver comprobante del pago del '+fe+'">'+fotoImg(p)+'</button><div style="flex:1;min-width:0"><div class="n">'+fe+' · '+esc2(p.forma)+'</div><div class="m">'+(p.referencia?'Referencia '+esc2(p.referencia):'Toca la foto para ver el comprobante')+'</div></div><div class="v">'+mm(p.monto)+'</div></div>'}).join("")
+  +(x.pag&&x.pagada?'<div class="rw"><div class="m">La nota quedó pagada el '+fCun(x.pagada).split(" · ")[0]+'.</div></div>':'')+'</div>'}
+var notaVerB=notaVer;notaVer=function(x,bar){notaVerB(x,bar);firmar((x.pagos||[]).filter(function(p){return !p.quitado}).map(function(p){return p.foto}))};
+
+/* Registrar pago o abono. */
+var abrirPagoB=abrirPago;
+abrirPago=function(){abrirPagoB();var x=CIE[ci],real=!!(window.COB_REAL&&x&&x.real&&x.nota);
+ $("pg-mo-w").style.display=real?"":"none";$("pg-ok").disabled=false;$("pg-ok").textContent="Registrar pago";
+ if(!real)return;var sal=saldoDe(x);
+ $("pg-x").textContent=x.n+" · "+x.folio+" · nota de "+mesNom(x.f);$("pg-mo").value=montoTxt(sal);
+ $("pg-mo-p").textContent=(x.pagado>0?"Abonado "+mm(x.pagado)+" · saldo ":"Saldo de la nota: ")+mm(sal)+". Si es un abono, escribe solo lo que pagó."};
+function pagoReal(){var x=CIE[ci];if(!x||!x.nota)return;var er=$("pg-err"),sal=saldoDe(x),mo=leeMonto($("pg-mo").value);
+ if(!(mo>0)){er.textContent="Escribe el monto del pago, por ejemplo 1,500.";return}
+ if(mo>sal){er.textContent="El pago no puede ser mayor al saldo de la nota ("+mm(sal)+").";return}
+ if(!pmet){er.textContent="Elige cómo se pagó.";return}
+ if(!pfoto){er.textContent="Sube la foto del comprobante.";return}
+ er.textContent="";var rf=$("pg-ref").value.trim(),rc=$("pg-rec").value.trim(),met=pmet,ft=pfoto,resta=Math.round((sal-mo)*100)/100;
+ confirmar("¿Seguro que deseas registrar este pago?",'<div class="cam"><b style="font-weight:500">'+esc2(x.n)+" · "+mm(mo)+"</b><br>"+esc2(x.folio)+" · "+esc2(met)+(rf?" · ref. "+esc2(rf):"")+(rc?"<br>Recibió "+esc2(rc):"")
+  +"<br>"+(resta?"Queda un saldo de "+mm(resta)+".":"Con este pago la nota queda pagada.")+"</div>","Sí, registrar pago","No, regresar",function(){guardarPago(x,mo,met,rf,rc,ft)})}
+function fotoBlob(u){return new Promise(function(ok,no){var mt=(String(u).match(/^data:([^;,]+)[;,]/)||[])[1]||"";
+ if(/^image\/(jpeg|png|webp)$/.test(mt))try{var b=atob(u.split(",")[1]),a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return ok(new Blob([a],{type:mt}))}catch(e){}
+ var im=new Image();im.onload=function(){var k=Math.min(1,1280/Math.max(im.width,im.height)),cv=document.createElement("canvas");cv.width=Math.round(im.width*k);cv.height=Math.round(im.height*k);
+  cv.getContext("2d").drawImage(im,0,0,cv.width,cv.height);cv.toBlob(function(bl){if(bl)ok(bl);else no(new Error("foto"))},"image/jpeg",.72)};im.onerror=function(){no(new Error("foto"))};im.src=u})}
+function msgPago(e){if(e&&e.foto&&!/^EGO/.test(String(e.code||"")))return navigator.onLine===false?"Sin conexión. Revisa tu internet e intenta de nuevo.":"No se pudo subir la foto del comprobante. Intenta de nuevo o usa otra foto.";
+ return msgProd(e).replace("No se pudo guardar.","No se pudo registrar el pago.")}
+async function guardarPago(x,mo,met,rf,rc,ft){var bt=$("pg-ok"),er=$("pg-err");if(bt.disabled)return;bt.disabled=true;bt.textContent="Subiendo la foto…";er.textContent="";
+ try{var bl;try{bl=await fotoBlob(ft)}catch(e){throw{foto:1}}
+  var ruta=x.socio+"/"+x.id+"/"+idFoto()+"."+(bl.type==="image/png"?"png":bl.type==="image/webp"?"webp":"jpg"),
+   up=await sb.storage.from("soc-comprobantes").upload(ruta,bl,{contentType:bl.type,upsert:false});
+  if(up.error){var ue=up.error;try{ue.foto=1}catch(e){ue={foto:1}}throw ue}
+  bt.textContent="Guardando el pago…";
+  var r=await sb.rpc("soc_registrar_pago",{p_nota:x.id,p_monto:mo,p_forma:met,p_referencia:rf||null,p_recibio:rc||null,p_foto:ruta});if(r.error)throw r.error;
+  var d=r.data||{};$("pago").classList.remove("on");
+  aviso("Pago registrado",'<div class="cam"><b style="font-weight:500">'+esc2(x.n)+" · "+mm(mo)+"</b><br>"+esc2(x.folio)+" · "+esc2(met)+"<br>"+(d.estado==="pagada"?"La nota quedó pagada.":"Queda un saldo de "+mm(+d.saldo)+".")+"</div>");
+  cargarCobranza()}
+ catch(e){er.textContent=msgPago(e)}
+ finally{bt.disabled=false;bt.textContent="Registrar pago"}}
+
+/* Pagos recibidos: los vigentes suman; los quitados quedan aparte con su motivo. */
+var pPagosB=pPagos;
+pPagos=function(){if(!window.COB_REAL)return pPagosB();var L=PAGOS_R;
+ if(COB_ERR==="cargando"||COB_ERR==="error"||L===null){$("pa-tot").innerHTML="";$("pa-met").innerHTML="";$("pa-fil").innerHTML="";
+  $("pa-l").innerHTML=COB_ERR==="cargando"?'<div class="tj vacio" role="status">Cargando los pagos…</div>'
+   :'<div class="tj vacio" role="alert">No se pudieron cargar los pagos. Revisa tu internet e intenta de nuevo.<div class="acc" style="margin-top:14px"><button data-cobr="1">Reintentar</button></div></div>';return}
+ var act=L.filter(function(p){return !p.quitado}),nq=L.length-act.length,tt=0,M={};act.forEach(function(p){tt+=+p.monto;M[p.forma]=(M[p.forma]||0)+(+p.monto)});
+ if(pafil==="Quitados"&&!nq||FORMAS.concat(["Todos","Quitados"]).indexOf(pafil)<0)pafil="Todos";
+ $("pa-tot").innerHTML='<div class="v">'+mm(tt)+'</div><div class="l">Cobrado en '+act.length+(act.length===1?" pago registrado":" pagos registrados")+(L.length>=300?" · últimos 300":"")+'</div>';
+ $("pa-met").innerHTML=FORMAS.map(function(k){return '<div class="stat"><div class="v1">'+mm(M[k]||0)+'</div><div class="l">'+k+'</div></div>'}).join("");
+ $("pa-fil").innerHTML=["Todos"].concat(FORMAS).concat(nq?["Quitados"]:[]).map(function(k){return '<button class="chip'+(pafil===k?" on":"")+'" data-pf="'+k+'">'+k+(k==="Quitados"?" ("+nq+")":"")+'</button>'}).join("");
+ var ls=L.filter(function(p){return pafil==="Quitados"?!!p.quitado:!p.quitado&&(pafil==="Todos"||p.forma===pafil)});
+ $("pa-l").innerHTML=ls.length?ls.map(pagoCard).join(""):'<div class="tj vacio">'+(L.length?"No hay pagos en esta vista.":"Todavía no hay pagos registrados.")+'</div>'};
+function pagoCard(p){var q=!!p.quitado,no=p.soc_notas||{},s=(p.soc_socios&&p.soc_socios.nombre)||"";
+ return '<div class="tj pgc'+(q?" qt":"")+'"><div class="ped-top"><div><div class="n" style="font-size:19px">'+esc2(s)+'</div><div class="meta">'+(no.mes?'Nota de '+mesNom(no.mes):'')+(no.folio?' · '+esc2(no.folio):'')+'</div></div><span class="estado'+(q?"":" ok")+'">'+(q?"Quitado":esc2(p.forma))+'</span></div>'
+  +'<div class="mo">'+mm(p.monto)+'</div>'
+  +'<div class="fl">'+fotoImg(p)+'<div>Registrado el '+fCun(p.registrado)+(p.registrado_nombre?'<br>por '+esc2(p.registrado_nombre):'')+(q?'<br>'+esc2(p.forma):'')+(p.referencia?'<br>Referencia '+esc2(p.referencia):'')+(p.recibio?'<br>Recibió '+esc2(p.recibio):'')+'</div></div>'
+  +(q?'<div class="qx">Quitado el '+fCun(p.quitado)+(p.quitado_nombre?' por '+esc2(p.quitado_nombre):'')+(p.motivo?'. Motivo: '+esc2(p.motivo):'')+'</div>':'')
+  +'<div class="acc"><button data-pvr="'+esc2(p.id)+'">Ver comprobante</button>'+(!q&&nivelYo()==="dueno"?'<button data-qr="'+esc2(p.id)+'">Quitar pago</button>':'')+'</div></div>'}
+function verComprobante(id){var z=buscaPago(id);if(!z)return;var p=z.p,fe=fCun(p.registrado).split(" · ")[0];
+ form({t:"Comprobante",x:(z.n?z.n+" · ":"")+mm(p.monto)+" · "+p.forma+" · "+fe,sobre:$("nota").classList.contains("on"),
+  html:'<img alt="Comprobante de pago" data-fpath="'+esc2(p.foto)+'" src="'+(FOTO_URL[p.foto]||PIXEL)+'" style="display:block;max-width:100%;max-height:60vh;min-height:120px;min-width:120px;margin:0 auto 14px;border-radius:18px;background:var(--campo)">'});
+ firmar([p.foto])}
+var formB=form;form=function(c){$("fm").classList.toggle("sobre",!!(c&&c.sobre));return formB(c)};
+function quitarPago(id){var z=buscaPago(id),p=z&&z.p;if(!p||p.quitado||nivelYo()!=="dueno")return;var fe=fCun(p.registrado).split(" · ")[0];
+ form({t:"Quitar pago",x:(z.n?z.n+" · ":"")+mm(p.monto)+" · "+p.forma+" · "+fe,
+  html:'<div class="f"><label for="qp-mot">Motivo</label><textarea class="nota" id="qp-mot" maxlength="300" placeholder="Por ejemplo: el monto estaba equivocado."></textarea></div><div class="pista">El pago no se borra: queda en el historial como quitado, con tu nombre y el motivo. La nota vuelve a quedar por cobrar.</div>',
+  okT:"Quitar pago",cq:"¿Seguro que deseas quitar este pago?",okC:"Sí, quitar pago",noC:"No, regresar",
+  cx:function(){return '<div class="cam"><b style="font-weight:500">'+esc2(z.n)+" · "+mm(p.monto)+"</b><br>"+esc2(p.forma)+" · "+fe+"<br>Motivo: "+esc2($("qp-mot").value.trim())+"</div>"},
+  ok:function(){var mo=$("qp-mot").value.trim();if(mo.length<3)return "Escribe por qué quitas este pago.";return function(){hacerQuitar(p,z.n,mo)}}})}
+async function hacerQuitar(p,n,mo){var r;try{r=await sb.rpc("soc_quitar_pago",{p_pago:p.id,p_motivo:mo})}catch(e){r={error:e}}
+ if(r&&r.error)aviso("No se pudo quitar el pago",'<div class="cam">'+esc2(msgProd(r.error))+'</div>');
+ else{var d=r.data||{};aviso("Pago quitado",'<div class="cam"><b style="font-weight:500">'+esc2(n)+" · "+mm(p.monto)+"</b><br>La nota "+esc2(d.folio||"")+" vuelve a quedar por cobrar: saldo "+mm(+d.saldo||0)+".</div>")}
+ cargarCobranza()}
+
+/* Urgencias: socios bloqueados y notas vencidas. */
+var cierreUrgB=cierreUrg;
+cierreUrg=function(IT){cierreUrgB(IT);var bl=BLOQ||[];
+ if(bl.length)IT.push({n:0,t:bl.length+(bl.length===1?" socio bloqueado por adeudo":" socios bloqueados por adeudo"),
+  d:bl.map(function(b){return b.nombre+": "+b.folio+" con "+mm(b.saldo)+" por pagar desde el "+ddmm(b.desde)}).join("; ")+". No "+(bl.length===1?"puede":"pueden")+" hacer pedidos hasta que registres su pago.",b:"Cobrar",g:"cierre"});
+ var vc=debReal().filter(function(o){return o.est==="Vencida"&&!bl.some(function(b){return b.socio_id===o.socio})});
+ if(vc.length)IT.push({n:1,t:vc.length+(vc.length===1?" nota vencida":" notas vencidas"),
+  d:vc.map(function(o){return o.n+" · "+o.folio+" · saldo "+mm(saldoDe(o))+(o.bloquea?" · se bloquea el "+ddmm(o.bloquea):"")}).join("; ")+".",b:"Cobrar",g:"cierre"})};
+
+/* Socio: aviso de nota vencida o cuenta bloqueada; con bloqueo no envía ni cambia pedidos, sí cancela. */
+function bloqueo(){return nivelYo()==="socio"&&CUENTA&&CUENTA.bloqueo||null}
+function bloqueoTxt(b){return "Desde el "+ddmm(b.desde)+" por la nota "+b.folio+", que tiene "+mm(b.saldo)+" por pagar. En cuanto registremos tu pago podrás volver a pedir."}
+function cuentaAvisoHtml(){var c=CUENTA;if(!c||nivelYo()!=="socio")return "";var b=c.bloqueo;
+ if(b)return '<div class="tj cta-b" role="alert"><b>Tu cuenta está bloqueada</b>'+esc2(bloqueoTxt(b))+' Puedes cancelar los pedidos que ya enviaste.</div>';
+ var v=(c.notas||[]).filter(function(n){return String(c.hoy||hoyIso())>String(n.limite).slice(0,10)})[0];
+ if(v)return '<div class="tj cta-v" role="status"><b>Tu nota de '+mesNom(v.mes)+' venció el '+ddmm(v.limite)+'</b>Tiene '+mm(v.saldo)+' por pagar. Si no se paga, tu cuenta se bloquea el '+ddmm(v.bloquea)+' y ya no podrás hacer pedidos.</div>';
+ return ""}
+function cuentaUI(){var c=$("cta-av");if(c)c.innerHTML=cuentaAvisoHtml();if($("v-ped").classList.contains("on"))pintarPed()}
+var saleHtmlB=saleHtml;saleHtml=function(){var b=bloqueo();if(b)return '<div class="tj sale bloq"><div class="d"><b style="font-weight:500">Tu cuenta está bloqueada</b><br>'+esc2(bloqueoTxt(b))+'</div></div>';return saleHtmlB()};
+var pintarPedB=pintarPed;pintarPed=function(){pintarPedB();if(bloqueo()){var bt=$("enviar");bt.disabled=true;bt.style.opacity=.5}};
+var enviarPedidoB=enviarPedido;enviarPedido=function(){var b=bloqueo();if(b){aviso("Tu cuenta está bloqueada",'<div class="cam">'+esc2(bloqueoTxt(b))+'</div>');return}return enviarPedidoB()};
+(function(){var a=abrirSesion;abrirSesion=function(pf,dest,anim){CUENTA=null;COB_HOY="";BLOQ=[];PAGOS_R=[];var c=$("cta-av");if(c)c.innerHTML="";return a(pf,dest,anim)}})();
+document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("[data-xcam]");if(!b||!bloqueo())return;e.preventDefault();e.stopImmediatePropagation();
+ aviso("Tu cuenta está bloqueada",'<div class="cam">'+esc2(bloqueoTxt(bloqueo()))+' Mientras tanto no puedes cambiar pedidos; sí puedes cancelarlos.</div>')},true);
+document.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;
+ if(b.dataset.pvr)verComprobante(b.dataset.pvr);else if(b.dataset.qr)quitarPago(b.dataset.qr)});
 </script>
 </body>
 </html>
