@@ -1036,7 +1036,7 @@ function tot(){var pz=0,t=0,pub=0;CAT.forEach(function(c,i){var q=Q[i]||0;pz+=q;
 function cita(){var f=FR[fi%FR.length];document.querySelectorAll(".cita").forEach(function(c){c.querySelector("q").textContent=f[0];c.querySelector("cite").textContent=f[1]+" · "+f[2];c.classList.remove("fuera")})}
 setInterval(function(){document.querySelectorAll(".cita").forEach(function(c){c.classList.add("fuera")});setTimeout(function(){fi++;cita()},600)},20000);
 function trans(ms,txt,fn){var c=$("screen-carga");c.classList.toggle("rapida",ms<=2400);c.querySelector("p").style.display=/^Bienvenido/.test(txt)?"block":"";c.querySelector("p").textContent=/^Bienvenido/.test(txt)?"Preparando todo para ti.":"Un momento, ya casi está.";c.querySelector("h2").textContent=txt;go("carga");setTimeout(fn,matchMedia("(prefers-reduced-motion: reduce)").matches?Math.min(ms,400):ms)}
-function go(n){document.querySelectorAll("#screen-login,#screen-carga,.scr").forEach(function(x){x.classList.remove("on")});$("screen-"+n).classList.add("on");if(n==="cliente")vista("cat");if(n==="produccion")pProd();if(n==="admin"){pAdmin();setTimeout(lineas,0)}window.scrollTo(0,0);try{location.hash=n==="login"?"":n}catch(e){}}
+function go(n){if(n!=="login"&&n!=="carga"&&!(window.PERM&&PERM(n)))n=window.PERFIL?PANT[PERFIL.nivel][0]:"login";document.querySelectorAll("#screen-login,#screen-carga,.scr").forEach(function(x){x.classList.remove("on")});$("screen-"+n).classList.add("on");if(n==="cliente")vista("cat");if(n==="produccion")pProd();if(n==="admin"){pAdmin();setTimeout(lineas,0)}window.scrollTo(0,0);try{location.hash=n==="login"?"":n}catch(e){}}
 function vista(v){["cat","ped","ok"].forEach(function(x){$("v-"+x).classList.toggle("on",x===v)});if(v==="ped")pintarPed();if(v==="cat")pintar();$("carro").hidden=v!=="cat"||filtro==="pedidos"||!tot().pz;cita();window.scrollTo(0,0)}
 function celda(c,i,fijo){var q=Q[i]||0,p=pre(c[1]);return '<div class="pc'+(q?" sel":"")+(fijo?" fijo":"")+'" data-k="'+i+'"><div class="ph">'+(c[3]?'<img alt="'+esc2(c[0])+'" src="'+c[3]+'" loading="lazy">':'<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#C9BFA6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"/><circle cx="12" cy="12.5" r="3.2"/><path d="M8 6l1.5-2h5L16 6"/></svg>')+'<span class="gn">Ganas <b>$'+(c[1]-p)+'</b> c/u</span>'+(q?'<span class="cn">'+q+'</span>':'')+'</div><div class="bd"><div class="n">'+esc2(c[0])+'</div><div class="pre"><b>$'+p+'</b><s>$'+c[1]+'</s></div><div class="ct">'+(q?'<div class="st"><button data-i="'+i+'" data-a="-1" aria-label="Quitar uno de '+esc2(c[0])+'">−</button><span>'+q+'</span><button class="mas" data-i="'+i+'" data-a="1" aria-label="Agregar uno de '+esc2(c[0])+'">+</button></div>':'<button class="ag" data-i="'+i+'" data-a="1">Agregar</button>')+'</div></div></div>'}
 function fotoDe(n){var c=CAT.filter(function(x){return x[0]===n||x[0].indexOf(n)===0})[0];return c&&c[3]?c[3]:""}
@@ -1234,7 +1234,7 @@ function pProd(){var c=cuenta(),nom=PED.filter(function(p){return p.e!=="listo"}
 function vcBar(){document.querySelectorAll("[data-vc]").forEach(function(b){b.classList.toggle("on",vcOn)});if($("vc-n"))$("vc-n").textContent=ROLN[rol]||""}
 function vcFin(){vcOn=false;rol=rolReal;vcBar();go("admin");atab("config")}
 function permisos(){vcBar();var lim=rol!=="dueno";if(lim&&/^(config|mant|bit)$/.test(aAct))aAct="resumen";pTabs();
- var u=STAFF.admin.filter(function(x){return x.u===quien})[0];$("a-quien").textContent="Administración · "+ROLN[rol];var hh0=new Date().getHours();$("a-hola").textContent=(hh0<12?"Buenos días":hh0<19?"Buenas tardes":"Buenas noches")+", "+(u?u.n.replace(/ \(ejemplo\)/,""):"Luis Angel");
+ var u=STAFF.admin.filter(function(x){return x.u===quien})[0];$("a-quien").textContent="Administración · "+ROLN[rol];var hh0=new Date().getHours();$("a-hola").textContent=(hh0<12?"Buenos días":hh0<19?"Buenas tardes":"Buenas noches")+", "+(window.PERFIL&&PERFIL.nombre?corto(PERFIL.nombre):(u?u.n.replace(/ \(ejemplo\)/,""):""));
  var act=document.querySelector(".apanel.on");if(lim&&act&&/a-(config|mant|bit)/.test(act.id))atab("resumen")}
 function puede(){if(rol==="aux"){conf("Tu nivel no permite este cambio","Los auxiliares ven ventas y pedidos y registran pagos. Pide a un Gerente o al Dueño que lo haga.",null);$("cf-ok").style.display="none";return false}return true}
 function pAdmin(){pBit();permisos();pConfig();var c=cuenta();
@@ -1287,7 +1287,7 @@ function pTabs(){var g=GR.filter(function(x){return x[2].indexOf(aAct)>=0})[0]||
  $("asub").innerHTML=g[2].length>1?g[2].map(function(t){return '<button class="chip'+(t===aAct?" on":"")+'" data-t="'+t+'">'+SUBN[t]+'</button>'}).join(""):""}
 function atab(t){if(rol!=="dueno"&&/^(config|mant|bit)$/.test(t))return;aAct=t;pTabs();setTimeout(lineas,0);document.querySelectorAll(".apanel").forEach(function(p){p.classList.toggle("on",p.id==="a-"+t)})}
 document.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;
- if(b.dataset.go){if(vcOn&&b.dataset.go==="login"){vcOn=false;rol=rolReal;vcBar()}go(b.dataset.go)}
+ if(b.dataset.go){if(b.dataset.go==="login"){if(vcOn)vcFin();else salir();return}go(b.dataset.go)}
  else if(b.dataset.v){vista(b.dataset.v)}
  else if(b.dataset.f){filtro=b.dataset.f;document.querySelectorAll("#filtros .chip").forEach(function(x){x.classList.toggle("on",x.dataset.f===filtro)});pintar()}
  else if(b.dataset.p){per=b.dataset.p;pintar()}
@@ -1345,18 +1345,76 @@ document.addEventListener("click",function(e){var b=e.target.closest("button");i
  else if(b.id==="c-pdf")verNota();
  else if(b.classList.contains("login-admin-link")){dest=b.textContent.indexOf("Admin")===0?"admin":"produccion";$("ac-t").textContent=dest==="admin"?"Administración":"Producción";$("ac-user").value="";$("ac-pass").value="";$("ac-err").textContent="";$("acceso").classList.add("on");$("ac-user").focus()}
  else if(b.id==="ac-no")$("acceso").classList.remove("on");
- else if(b.id==="ac-ok"){if(!$("ac-user").value.trim()||!$("ac-pass").value){$("ac-err").textContent="Escribe tu usuario y tu contraseña.";return}quien=$("ac-user").value.trim().toLowerCase();if(dest==="admin"){var su=STAFF.admin.filter(function(x){return x.u===quien})[0];if(su&&!su.act){$("ac-err").textContent="Este usuario está pausado.";return}rol=su?su.r:"dueno"}$("acceso").classList.remove("on");var st=STAFF[dest==="admin"?"admin":"prod"].filter(function(z){return z.u===quien})[0];trans(1400,"Bienvenido, "+(st?st.n.replace(/ \(ejemplo\)/,""):quien),function(){go(dest)})}});
+ else if(b.id==="ac-ok"){entrarEquipo()}});
 document.addEventListener("change",function(e){if(e.target.id==="f-foto"){var ff=e.target.files&&e.target.files[0];if(!ff)return;var r2=new FileReader();r2.onload=function(){var im=new Image();im.onload=function(){var k=Math.min(1,800/Math.max(im.width,im.height)),cv=document.createElement("canvas");cv.width=Math.round(im.width*k);cv.height=Math.round(im.height*k);cv.getContext("2d").drawImage(im,0,0,cv.width,cv.height);ffoto=cv.toDataURL("image/jpeg",.75);var l=$("f-fl");l.classList.add("con");l.style.backgroundImage="url("+ffoto+")";$("f-fx").textContent="Foto lista: "+Math.max(1,Math.round(ffoto.length*.75/1024))+" KB. Toca la foto para cambiarla."};im.onerror=function(){$("f-fx").textContent="No se pudo leer la imagen. Prueba con otra foto."};im.src=r2.result};r2.readAsDataURL(ff);return}if(e.target.id==="mt-time"&&e.target.value){var hp=e.target.value.split(":"),hh=+hp[0];var nh2=((hh+11)%12+1)+":"+hp[1]+(hh<12?" a. m.":" p. m.");e.target.value="";conf("¿Seguro que deseas cambiar la hora límite?","De "+mtHor+" a "+nh2+" · aplica desde el siguiente pedido",function(){mtHor=nh2;bit("Sistema","Cambió la hora límite para pedir a "+mtHor);pMant()});return}if(e.target.id==="pg-foto"){var f=e.target.files&&e.target.files[0];if(!f)return;var fr=new FileReader();fr.onload=function(){var im=new Image();im.onload=function(){var mxl=1280,k=Math.min(1,mxl/Math.max(im.width,im.height)),cv=document.createElement("canvas");cv.width=Math.round(im.width*k);cv.height=Math.round(im.height*k);cv.getContext("2d").drawImage(im,0,0,cv.width,cv.height);var out=cv.toDataURL("image/jpeg",.72),kb=function(n){return n>1048576?(n/1048576).toFixed(1)+" MB":Math.max(1,Math.round(n/1024))+" KB"},nb=Math.round(out.length*.75);if(nb>=f.size){out=fr.result;nb=f.size}pfoto=out;$("pg-prev").src=pfoto;document.querySelector(".foto").classList.add("con");$("pg-err").textContent="";$("pg-cx").textContent=nb<f.size?"Foto comprimida: de "+kb(f.size)+" a "+kb(nb)+".":"La foto ya era ligera: "+kb(nb)+"."};im.onerror=function(){$("pg-err").textContent="No se pudo leer la imagen. Prueba con otra foto."};im.src=fr.result};fr.readAsDataURL(f);return}if(e.target.id==="r-a"&&e.target.value){RA=e.target.value;pintar()}else if(e.target.id==="r-b"&&e.target.value){RB=e.target.value;pintar()}else if(e.target.id==="ar-a"&&e.target.value){ARA=e.target.value;pPer()}else if(e.target.id==="ar-b"&&e.target.value){ARB=e.target.value;pPer()}});
 document.addEventListener("input",function(e){if(fmCfg&&fmCfg.live&&e.target.closest("#fm"))fmCfg.live()});
 document.addEventListener("keydown",function(e){if(e.key==="Escape"){$("fm").classList.remove("on");$("acceso").classList.remove("on");$("conf").classList.remove("on");$("pago").classList.remove("on");$("nota").classList.remove("on")}});
 CAT.forEach(function(c){if(FOTOS[c[0]])c[3]=FOTOS[c[0]]});pintar();pProd();pAdmin();cita();
-var hh=location.hash.replace("#","");if(["cliente","produccion","admin","carga"].indexOf(hh)>=0)go(hh);
 
-document.getElementById("entrar").onclick=function(){
-  var u=document.getElementById("login-user").value.trim(),p=document.getElementById("login-pass").value,e=document.getElementById("login-error");
-  e.style.color=(!u||!p)?"#9b2c1d":"#4A4E2C";
-  if(!u||!p){e.textContent="Ingresa usuario y contraseña.";return}e.textContent="";var so=SOCIOS.filter(function(z){return z.u===u.toLowerCase()})[0],nomC=so?so.n:"Café Ejemplo";document.querySelectorAll("#v-cat .cab h2,#v-ok .cab small").forEach(function(x){x.textContent=nomC});trans(2200,"Bienvenido, "+nomC,function(){go("cliente")});
-};
+
+
+</script>
+<script src="vendor/supabase.js"></script>
+<script>
+/* ===== Acceso real · Día 1 (26/11/2026): Supabase Auth =====
+   Cada quien entra con su usuario y contraseña; la base decide qué ve (RLS).
+   La llave de abajo es la pública del proyecto: sin sesión no abre nada. */
+var SB_URL="https://dlzkmwupqeaqudiwlltk.supabase.co",SB_KEY="sb_publishable_MLti9DIgKfNE-0FxIuY5fw_UEVOq92i",DOMINIO="socios.ego",SB_SESION="ego-socios-sesion";
+var sb=null,PERFIL=null;
+try{sb=supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,storageKey:SB_SESION}})}catch(e){sb=null}
+var PANT={dueno:["admin","produccion","cliente"],gerente:["admin","produccion"],aux:["admin"],produccion:["produccion"],socio:["cliente"]};
+function PERM(n){return !!(PERFIL&&PANT[PERFIL.nivel]&&PANT[PERFIL.nivel].indexOf(n)>=0)}
+function corto(n){var p=String(n||"").trim().split(/\s+/);return p.length>2?p.slice(0,2).join(" "):p.join(" ")}
+function correoDe(u){return String(u).trim().toLowerCase().replace(/\s+/g,"")+"@"+DOMINIO}
+function msgAcceso(e){var t=String(e&&(e.message||e.error_description||e.msg)||""),st=e&&(e.status||e.statusCode);
+ if(!navigator.onLine||/failed to fetch|networkerror|network request|load failed|fetch/i.test(t))return "Sin conexión. Revisa tu internet e intenta de nuevo.";
+ if(st===429||/too many|rate limit/i.test(t))return "Demasiados intentos. Espera un minuto y vuelve a intentar.";
+ if(/not confirmed/i.test(t))return "Tu usuario aún no está activado. Habla con EGO.";
+ if(/invalid login|invalid_credentials|invalid credentials/i.test(t)||st===400)return "Usuario o contraseña incorrectos.";
+ return "No se pudo entrar. Intenta de nuevo."}
+async function cargarPerfil(uid){var r=await sb.from("soc_usuarios").select("usuario,nombre,nivel,activo,soc_socios(nombre)").eq("id",uid).maybeSingle();if(r.error)throw r.error;return r.data}
+function abrirSesion(pf,dest,anim){
+ PERFIL=pf;quien=pf.usuario;
+ if(/^(dueno|gerente|aux)$/.test(pf.nivel)){rol=pf.nivel;rolReal=pf.nivel}
+ var nom=pf.nivel==="socio"?((pf.soc_socios&&pf.soc_socios.nombre)||pf.nombre):corto(pf.nombre);
+ if(pf.nivel==="socio")document.querySelectorAll("#v-cat .cab h2,#v-ok .cab small").forEach(function(x){x.textContent=nom});
+ var dst=dest&&PERM(dest)?dest:PANT[pf.nivel][0];
+ $("login-pass").value="";$("ac-pass").value="";$("acceso").classList.remove("on");
+ if(anim)trans(dst==="cliente"?2200:1400,"Bienvenido, "+nom,function(){go(dst)});else go(dst)}
+async function entrar(u,p,dest,err,btn){
+ err.style.color="#9b2c1d";
+ if(!u||!p){err.textContent="Escribe tu usuario y tu contraseña.";return}
+ if(!sb){err.textContent="No cargó la conexión. Recarga la página.";return}
+ btn.disabled=true;err.style.color="#4A4E2C";err.textContent="Entrando…";
+ try{
+  var a=await sb.auth.signInWithPassword({email:correoDe(u),password:p});
+  if(a.error)throw a.error;
+  var pf=await cargarPerfil(a.data.user.id);
+  if(!pf){await sb.auth.signOut();throw {mensaje:"Tu usuario todavía no tiene acceso. Habla con EGO."}}
+  if(!pf.activo){await sb.auth.signOut();throw {mensaje:"Este usuario está pausado. Habla con EGO."}}
+  err.textContent="";abrirSesion(pf,dest,true)
+ }catch(e){err.style.color="#9b2c1d";err.textContent=e&&e.mensaje?e.mensaje:msgAcceso(e)}
+ finally{btn.disabled=false}}
+function entrarSocio(){entrar($("login-user").value.trim(),$("login-pass").value,"cliente",$("login-error"),$("entrar"))}
+function entrarEquipo(){entrar($("ac-user").value.trim(),$("ac-pass").value,dest,$("ac-err"),$("ac-ok"))}
+async function salir(){try{if(sb)await sb.auth.signOut()}catch(e){}PERFIL=null;quien="";rol=rolReal="dueno";go("login")}
+$("entrar").onclick=entrarSocio;
+["login-user","login-pass"].forEach(function(id){$(id).addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();entrarSocio()}})});
+["ac-user","ac-pass"].forEach(function(id){$(id).addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();entrarEquipo()}})});
+/* al abrir: si ya había sesión en este equipo, entra directo a su pantalla */
+(async function(){
+ var guardada=false;try{guardada=!!localStorage.getItem(SB_SESION)}catch(e){}
+ if(!sb||!guardada)return;
+ var c=$("screen-carga");c.querySelector("h2").textContent="Un momento";c.querySelector("p").textContent="Abriendo tu sesión.";go("carga");
+ try{
+  var s=await sb.auth.getSession(),ses=s.data&&s.data.session;
+  if(!ses){go("login");return}
+  var pf=await cargarPerfil(ses.user.id);
+  if(!pf||!pf.activo){await sb.auth.signOut();go("login");return}
+  abrirSesion(pf,location.hash.replace("#",""),false)
+ }catch(e){go("login");$("login-error").style.color="#9b2c1d";$("login-error").textContent=msgAcceso(e)}
+})();
+if(sb)sb.auth.onAuthStateChange(function(ev){if(ev==="SIGNED_OUT"&&PERFIL){PERFIL=null;quien="";go("login")}});
 </script>
 </body>
 </html>
