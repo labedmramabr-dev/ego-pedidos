@@ -790,7 +790,7 @@ button:active{transform:scale(.96)}
 .ajn.ok i{color:var(--gris)}
 .horno .hg{flex-basis:100%;font-family:"Fraunces",serif;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gris);margin:8px 2px 0}
 .horno .hg:first-child{margin-top:0}
-body:has(#screen-produccion.on.real) .proto{display:none}
+body:has(#screen-produccion.on.real) .proto,body:has(#screen-cliente.on.real) .proto{display:none}
 </style>
 </head>
 <body>
@@ -1342,7 +1342,7 @@ document.addEventListener("click",function(e){var b=e.target.closest("button");i
  else if(b.dataset.pv){var pv=PAGOS[+b.dataset.pv];form({t:"Comprobante",x:pv.s+" · "+m(pv.mo)+" · "+pv.met,html:'<img alt="Comprobante de pago" src="'+pv.foto+'" style="display:block;max-width:100%;max-height:60vh;margin:0 auto 14px;border-radius:18px">'})}
  else if(b.id==="fm-no")$("fm").classList.remove("on");
  else if(b.id==="fm-del"){if(fmCfg&&fmCfg.del)fmCfg.del()}
- else if(b.id==="fm-ok"){if(!fmCfg||!fmCfg.ok)return;if(fmCfg.lock&&!$("fm-pass").value){$("fm-err").textContent="Escribe tu contraseña para guardar.";return}var er=fmCfg.ok();if(typeof er==="string"&&er){$("fm-err").textContent=er;return}if(typeof er==="function"&&fmCfg.direct){er();$("fm").classList.remove("on");return}if(typeof er==="function"){var c0=fmCfg;conf(c0.cq||"¿Seguro que deseas guardar estos cambios?",c0.cx?c0.cx():esc2(c0.t)+(c0.x?" · "+esc2(c0.x):""),function(){er();$("fm").classList.remove("on")});return}$("fm").classList.remove("on")}
+ else if(b.id==="fm-ok"){if(!fmCfg||!fmCfg.ok)return;if(fmCfg.lock&&!$("fm-pass").value){$("fm-err").textContent="Escribe tu contraseña para guardar.";return}var er=fmCfg.ok();if(typeof er==="string"&&er){$("fm-err").textContent=er;return}if(typeof er==="function"&&fmCfg.direct){er();$("fm").classList.remove("on");return}if(typeof er==="function"){var c0=fmCfg;conf(c0.cq||"¿Seguro que deseas guardar estos cambios?",c0.cx?c0.cx():esc2(c0.t)+(c0.x?" · "+esc2(c0.x):""),function(){er();$("fm").classList.remove("on")});if(c0.okC)etiquetas(c0.okC,c0.noC);return}$("fm").classList.remove("on")}
  else if(b.id==="c-pago"){var cx=CIE[ci];if(cx.pag)conf("¿Seguro que deseas quitar el pago registrado?",cx.n+" · "+m(cx.t),function(){cx.pag=false;cx.pm=null;pCierre()});else abrirPago()}
  else if(b.dataset.vn){ci=+b.dataset.vn;pCierre();bit("Cierre","Abrió la nota de "+CIE[ci].n+" · "+CIES[cm].t.split(" · ")[0].toLowerCase());verNota()}
  else if(b.id==="nota-x")$("nota").classList.remove("on")
@@ -1593,6 +1593,7 @@ function adHoy(soc){var x=proxSal(),st=function(v,l){return '<div class="stat"><
  return '<div class="sh" style="margin:26px 4px 12px">Salida del '+diaCorto(x.sig)+'</div><div class="grid">'+st(x.n,(x.n===1?"Pedido":"Pedidos")+" para las "+horaTxt(HORA_SAL).split(" ")[0])+st(x.ph,"Piezas por hornear")+st(x.ls+" de "+x.n,"Pedidos listos")+st(soc,"Socios activos")+'</div>'}
 function prodTimer(on){if(on&&!prodInt)prodInt=setInterval(function(){if(!document.hidden)cargarProduccion()},60000);if(!on&&prodInt){clearInterval(prodInt);prodInt=null}}
 async function cargarProduccion(){
+ $("screen-cliente").classList.toggle("real",!!(sb&&PERFIL&&PERFIL.nivel==="socio"));
  if(!sb||!PERFIL||EQUIPO.indexOf(PERFIL.nivel)<0){prodVuelta++;PROD_REAL=false;PED=PED_EJEMPLO.map(function(x){return Object.assign({},x)});$("a-pt").textContent="Pedidos para el jueves 12";$("screen-produccion").classList.remove("real");prodTimer(false);return}
  var v=++prodVuelta,a=ahoraCun(),hoyS=iso(a.f),lista=[];
  try{
@@ -1645,7 +1646,7 @@ function resolverAjuste(i,ap){var p=PED[i];if(!p||!p.aj||!PROD_REAL)return;
   var x;try{x=await sb.rpc("soc_resolver_ajuste",{p_id:p.aj.id,p_aprobar:ap})}catch(e){x={error:e}}
   if(x&&x.error)aviso("No se pudo guardar",'<div class="cam">'+esc2(msgProd(x.error))+'</div>');cargarProduccion()})}
 fAjuste=function(i){var p=PED[i];if(!p||!PROD_REAL)return;AJ=p.lineas.map(function(l){return l.cantidad});
- form({t:"Ajustar pedido",x:p.c+" · "+pzs(p)+" piezas",okT:"Guardar ajuste",cq:"¿Seguro que deseas ajustar este pedido?",
+ form({t:"Ajustar pedido",x:p.c+" · "+pzs(p)+" piezas",okT:"Guardar ajuste",cq:"¿Seguro que deseas guardar este ajuste?",okC:"Sí, guardar ajuste",noC:"No, regresar",
   html:'<div class="tj" style="box-shadow:none;background:var(--campo);margin-bottom:12px">'+p.lineas.map(function(l,k){return '<div class="ajr"><div>'+esc2(l.nombre)+'<small>Pidió '+(l.cantidad_pedida!=null?l.cantidad_pedida:l.cantidad)+'</small></div><div class="st"><button data-aj="'+k+'" data-ad="-1" aria-label="Quitar uno">−</button><span id="aj-'+k+'">'+l.cantidad+'</span><button class="mas" data-aj="'+k+'" data-ad="1" aria-label="Agregar uno">+</button></div></div>'}).join("")+'</div>',
   campos:[{id:"f-mot",l:"Motivo del ajuste",ph:"Por ejemplo: faltó mantequilla",p:"El socio y administración ven este motivo."}],
   ok:function(){var cam=[],env=[];p.lineas.forEach(function(l,k){if(AJ[k]!==l.cantidad){cam.push(l.nombre+": "+l.cantidad+" → "+AJ[k]);env.push({linea_id:l.id,cantidad:AJ[k]})}});var mo=$("f-mot").value.trim();
