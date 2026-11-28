@@ -1253,14 +1253,14 @@ function pAdmin(){pBit();permisos();pConfig();var c=cuenta();
  if(c.nuevo)IT.push({n:1,t:c.nuevo+(c.nuevo===1?" pedido sin aceptar":" pedidos sin aceptar"),d:"Producción todavía no lo confirma: "+PED.filter(function(p){return p.e==="nuevo"}).map(function(p){return p.c}).filter(function(x,i,a){return a.indexOf(x)===i}).join(", ")+".",b:"Revisar",g:"pedidos"});
  var aj=PED.filter(function(p){return p.aj&&!p.aj.ok});if(aj.length)IT.push({n:1,t:aj.length+(aj.length===1?" ajuste por aprobar":" ajustes por aprobar"),d:aj.map(function(p){return p.c}).filter(function(x,i,a){return a.indexOf(x)===i}).join(", ")+": producción cambió cantidades.",b:"Aprobar",g:"pedidos"});
  if(deb.length)IT.push({n:1,t:m(dt)+" por cobrar"+(window.COB_REAL?debMes(deb):" de octubre"),d:deb.length+(deb.length===1?" nota sigue abierta: ":" notas siguen abiertas: ")+deb.map(function(o){return o.n}).join(", ")+".",b:"Cobrar",g:"cierre"});if(window.COB_REAL)cierreUrg(IT);
- var k0=0;ESC.forEach(function(e,i){if(MES_PAG>=e[0])k0=i});if(ESC[k0+1]&&ESC[k0+1][0]-MES_PAG<4000)IT.push({n:3,t:"Café Ejemplo está a "+m(ESC[k0+1][0]-MES_PAG)+" de subir de escalón",d:"Avísale: con un pedido más grande pasa a "+ESC[k0+1][1]+"%"+(ESC[k0+1][2]?" y recibe entrega gratis.":"."),b:"Ver socio",g:"socios"});
+ if(window.ADMIN_REAL&&window.urgAdm)urgAdm(IT);else{var k0=0;ESC.forEach(function(e,i){if(MES_PAG>=e[0])k0=i});if(ESC[k0+1]&&ESC[k0+1][0]-MES_PAG<4000)IT.push({n:3,t:"Café Ejemplo está a "+m(ESC[k0+1][0]-MES_PAG)+" de subir de escalón",d:"Avísale: con un pedido más grande pasa a "+ESC[k0+1][1]+"%"+(ESC[k0+1][2]?" y recibe entrega gratis.":"."),b:"Ver socio",g:"socios"});
  var sc=SOCIOS.filter(function(o){return !o.mail});if(sc.length)IT.push({n:2,t:sc.length+(sc.length===1?" socio sin correo":" socios sin correo"),d:sc.map(function(o){return o.n}).join(", ")+": sin correo no le llega su nota mensual.",b:"Completar",g:"socios"});
- if(rol==="dueno"&&mtFo/1024>.55)IT.push({n:2,t:"Las fotos ya ocupan "+Math.round(mtFo/1024*100)+"% del espacio",d:"Descarga el respaldo y limpia el historial antes de que la app se ponga lenta.",b:"Mantenimiento",g:"mant"});
+ if(rol==="dueno"&&mtFo/1024>.55)IT.push({n:2,t:"Las fotos ya ocupan "+Math.round(mtFo/1024*100)+"% del espacio",d:"Descarga el respaldo y limpia el historial antes de que la app se ponga lenta.",b:"Mantenimiento",g:"mant"})}
  IT.sort(function(a,b){return a.n-b.n});var NV=[["urg","Urgente"],["hoy","Hoy"],["lue","Cuando puedas"],["opo","Oportunidad"]],nu=IT.filter(function(x){return x.n===0}).length,nh=IT.filter(function(x){return x.n===1}).length,pend=nu+nh;
  $("a-hero").innerHTML='<div class="hz ad"><div><div class="tt">Lo que pide tu atención</div><div class="big">'+pend+'<small>'+(pend===1?"pendiente":"pendientes")+'</small></div><div class="sig">'+(pend?(nu?'<b class="ro">'+nu+' urgente'+(nu===1?"":"s")+'</b>'+(nh?' y ':''):'')+(nh?'<b>'+nh+' para hoy</b>':'')+'. Empieza por arriba.':'Todo en orden. No hay nada que resolver ahora.')+'</div></div>'
   +'<div class="gano"><div>'+(window.PROD_REAL?adHero():'<b>7:30</b><span>Salida de mañana · '+PED.length+' pedidos · '+c.pz+' piezas</span>')+'</div><div><b>'+m(dt)+'</b><span>Por cobrar'+(window.COB_REAL?debMes(deb):' de octubre')+'</span></div></div></div>';
  $("a-alertas").innerHTML='<div class="sh" style="margin:4px 4px 12px">Por orden de urgencia</div>'+(IT.length?IT.map(function(x,i){return '<div class="pri '+NV[x.n][0]+(i===0&&x.n<2?" pr1":"")+'"><span class="nm">'+(i+1)+'</span><div class="bd"><span class="nv">'+NV[x.n][1]+'</span><div class="t">'+esc2(x.t)+'</div><div class="d">'+esc2(x.d)+'</div></div><button data-t2="'+x.g+'">'+x.b+'</button></div>'}).join(""):'<div class="vac"><h4>Todo en orden</h4><p>No hay pedidos, ajustes ni cobros pendientes.</p></div>');
- $("a-hoy").innerHTML=window.PROD_REAL?adHoy(SOCIOS.filter(function(o){return o.act}).length):'<div class="sh" style="margin:26px 4px 12px">Mañana sale</div><div class="grid"><div class="stat"><div class="v1">'+PED.length+'</div><div class="l">Pedidos para las 7:30</div></div><div class="stat"><div class="v1">'+c.pz+'</div><div class="l">Piezas por hornear</div></div><div class="stat"><div class="v1">'+c.listo+' de '+PED.length+'</div><div class="l">Pedidos listos</div></div><div class="stat"><div class="v1">'+SOCIOS.filter(function(o){return o.act}).length+'</div><div class="l">Socios activos</div></div></div>';
+ $("a-hoy").innerHTML=window.PROD_REAL?adHoy(window.ADMIN_REAL&&!window.ADM?(window.ADM_ERR==="cargando"?"…":"—"):SOCIOS.filter(function(o){return o.act}).length):'<div class="sh" style="margin:26px 4px 12px">Mañana sale</div><div class="grid"><div class="stat"><div class="v1">'+PED.length+'</div><div class="l">Pedidos para las 7:30</div></div><div class="stat"><div class="v1">'+c.pz+'</div><div class="l">Piezas por hornear</div></div><div class="stat"><div class="v1">'+c.listo+' de '+PED.length+'</div><div class="l">Pedidos listos</div></div><div class="stat"><div class="v1">'+SOCIOS.filter(function(o){return o.act}).length+'</div><div class="l">Socios activos</div></div></div>';
  pPer();
  $("a-prod").innerHTML=CAT.map(function(x){return '<div class="fila"><div style="display:flex;align-items:center;min-width:0"><span class="mth" style="'+(x[3]?"background-image:url("+x[3]+")":"")+'"></span><div><div class="n">'+x[0]+'</div><div class="m">'+(x[2]==="s"?"Pan salado":"Pan dulce")+(x[3]?"":" · sin foto")+'</div></div></div><div style="display:flex;align-items:center;gap:10px"><span class="n" style="font-variant-numeric:tabular-nums">$'+x[1]+'</span><button class="mini" data-pe="'+CAT.indexOf(x)+'">Editar</button></div></div>'}).join("");$("pr-t").textContent=CAT.length+" productos · precio al público";pSocios();
  $("a-esc").innerHTML=ESC.map(function(e,i){return '<div class="fila"><div><div class="n">'+e[1]+'%</div><div class="m">Desde '+m(e[0])+(ESC[i+1]?" hasta "+m(ESC[i+1][0]-1):" en adelante")+' · '+(e[2]?"entrega gratis":"retira")+'</div></div><button class="mini" data-ee="'+i+'">Editar</button></div>'}).join("");
@@ -1928,6 +1928,267 @@ document.addEventListener("click",function(e){var b=e.target.closest&&e.target.c
  aviso("Tu cuenta está bloqueada",'<div class="cam">'+esc2(bloqueoTxt(bloqueo()))+' Mientras tanto no puedes cambiar pedidos; sí puedes cancelarlos.</div>')},true);
 document.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;
  if(b.dataset.pvr)verComprobante(b.dataset.pvr);else if(b.dataset.qr)quitarPago(b.dataset.qr)});
+</script>
+<style>
+/* Día 7: administración real */
+.fila.apag{opacity:.55}
+.prg{font-family:"Fraunces",serif;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gris);margin:16px 2px 0}
+.prg:first-child{margin-top:0}
+.items .fx,.meta .fx{color:#9B2C1D}
+</style>
+<script>
+/* ===== Día 7 (27/11/2026): administración con datos reales =====
+   Socios desde soc_admin(): cuenta, activo o pausado, escalón y compra del mes, saldo o bloqueo. Dueño y gerente dan de
+   alta con soc_alta_socio (deja la invitación; la cuenta se crea en el panel de Supabase y se liga sola), editan y pausan
+   con soc_guardar_socio (pausar le quita el acceso). Catálogo con todos los productos, también los apagados: nombre,
+   precio, tipo, lugar, foto (se comprime y se sube a soc-fotos con una ruta nueva) y apagar, con soc_guardar_producto.
+   Escalones, solo el dueño, con soc_guardar_escalon. Ventas a precio de socio por fecha de salida con soc_ventas.
+   Las urgencias de correo, oportunidad y fotos salen de los datos reales. Todo cambio pide confirmación. */
+var ADMIN_REAL=false,ADM=null,ADM_ERR="",ADM_T=0,admVuelta=0,PRODS=[],SOCIOS_EJEMPLO=SOCIOS.slice(),VEN=null,VEN_K="",VEN_ERR="",venVuelta=0,
+ FOTOS_LIM=1073741824,EQUIPO_ADM=["dueno","gerente","aux"];
+function msgCarga(e){var c=String(e&&e.code||""),t=String(e&&(e.message||e.error_description)||"");if(/^EGO/.test(c))return t;return "Revisa tu internet e intenta de nuevo."}
+/* Periodos con la fecha de Cancún: esta semana y este mes van hasta mañana (lo que ya está pedido), sin salirse de la semana o del mes. */
+function rgReal(p,ra,rb){var h=ahoraCun().f,man=diaMas(h,1),l=diaMas(h,-((h.getDay()+6)%7)),a,b,fm;
+ if(p==="semana"){a=l;b=man<diaMas(l,7)?man:diaMas(l,6)}
+ else if(p==="semana0"){a=diaMas(l,-7);b=diaMas(l,-1)}
+ else if(p==="mes"){a=new Date(h.getFullYear(),h.getMonth(),1);fm=new Date(h.getFullYear(),h.getMonth()+1,0);b=man<=fm?man:fm}
+ else if(p==="mes0"){a=new Date(h.getFullYear(),h.getMonth()-1,1);b=new Date(h.getFullYear(),h.getMonth(),0)}
+ else{a=deISO(ra);b=deISO(rb);if(isNaN(a)||isNaN(b))return rgReal("mes");if(b<a){var z=a;a=b;b=z}}
+ return[a,b]}
+function socReal(s){var us=s.usuarios||[];return{id:s.id,n:s.nombre,u:us.map(function(x){return x.usuario}).join(", "),usuarios:us,inv:s.invitacion||"",w:s.whatsapp||"",mail:s.correo||"",
+ contacto:s.contacto||"",act:!!s.activo,mes:s.mes||{},saldo:+s.saldo||0,bloqueo:s.bloqueo||null,real:true}}
+function admLimpiar(){ADMIN_REAL=false;ADM=null;ADM_ERR="";ADM_T=0;PRODS=[];VEN=null;VEN_K="";VEN_ERR="";venVuelta++;admVuelta++;SOCIOS=SOCIOS_EJEMPLO.slice()}
+function admEmpezar(){ADMIN_REAL=true;ADM=null;ADM_ERR="cargando";ADM_T=0;SOCIOS=[];PRODS=[];VEN=null;VEN_K="";VEN_ERR="";venVuelta++;aper="mes";var r0=rgReal("mes");ARA=iso(r0[0]);ARB=iso(r0[1])}
+async function cargarAdmin(){
+ if(!sb||!PERFIL||EQUIPO_ADM.indexOf(nivelYo())<0){if(ADMIN_REAL)admLimpiar();return}
+ if(!ADMIN_REAL)admEmpezar();var v=++admVuelta;
+ try{var r=await Promise.all([sb.rpc("soc_admin"),sb.from("soc_productos").select("id,nombre,precio,tipo,foto,orden,activo").order("orden").order("nombre")]);
+  if(v!==admVuelta)return;if(r[0].error)throw r[0].error;if(r[1].error)throw r[1].error;
+  ADM=r[0].data||{socios:[]};ADM_ERR="";ADM_T=Date.now();VEN_K="";
+  SOCIOS=(ADM.socios||[]).map(socReal).sort(function(a,b){return(b.act-a.act)||a.n.localeCompare(b.n,"es")});
+  PRODS=(r[1].data||[]).slice().sort(function(a,b){return(a.tipo===b.tipo?0:a.tipo==="salado"?-1:1)||((a.orden||0)-(b.orden||0))||a.nombre.localeCompare(b.nombre,"es")})}
+ catch(e){if(v!==admVuelta)return;ADM_ERR=msgCarga(e)}
+ pAdmin()}
+/* Guardar: "Un momento…" mientras la base responde; si falla, regresa el formulario con lo escrito y el motivo. */
+function trabajando(t){confBase(t,'<div class="cam" role="status">Un momento…</div>',null);$("cf-ok").style.display="none";$("cf-no").style.display="none"}
+function admFallo(r,foto){if(!(r&&r.error))return false;$("conf").classList.remove("on");$("fm").classList.add("on");
+ $("fm-err").textContent=foto?"No se pudo subir la foto. Intenta de nuevo o usa otra foto.":msgProd(r.error);return true}
+function errAdm(que){return '<div class="tj vacio" role="alert">No se pudo cargar '+que+'. '+esc2(ADM_ERR)+'<div class="acc" style="margin-top:14px"><button data-admr="1">Reintentar</button></div></div>'}
+
+/* Socios */
+var pSociosB7=pSocios;
+pSocios=function(){if(!ADMIN_REAL)return pSociosB7();var l=$("so-l"),t=$("so-t");
+ if(ADM_ERR==="cargando"&&!ADM){t.textContent="Socios";l.innerHTML='<div class="tj vacio" role="status">Cargando socios…</div>';return}
+ if(ADM_ERR&&ADM_ERR!=="cargando"){t.textContent="Socios";l.innerHTML=errAdm("la lista de socios");return}
+ var na=SOCIOS.filter(function(o){return o.act}).length,mt=mesSolo(ADM.mes);
+ t.textContent=SOCIOS.length+(SOCIOS.length===1?" socio":" socios")+(SOCIOS.length!==na?" · "+na+(na===1?" activo":" activos"):"");
+ l.innerHTML=SOCIOS.length?SOCIOS.map(function(o,i){var x=o.mes||{},sg=x.siguiente,b=o.bloqueo;
+   var cta=o.u?"Usuario: "+esc2(o.u):o.inv?'<span class="fx">Cuenta por crear: '+esc2(o.inv)+'@socios.ego</span>':'<span class="fx">Sin cuenta para entrar</span>';
+   var chip=!o.act?'<span class="estado">Pausado</span>':b?'<span class="estado atr">Bloqueado</span>':'<span class="estado ok">'+x.descuento+'%'+(x.entrega?' · entrega':'')+'</span>';
+   var compra=+x.pagado>0?"Compra de "+mt+": "+m(x.pagado)+" · "+x.pedidos+(x.pedidos==1?" pedido":" pedidos")+(sg?" · le faltan "+m(sg.faltan)+" para "+sg.descuento+"%":""):"Sin compras en "+mt;
+   var deuda=b?'<br><span class="fx">Bloqueado desde el '+ddmm(b.desde)+': '+esc2(b.folio)+' con '+mm(b.saldo)+' por pagar</span>':o.saldo>0?'<br>Por cobrar: '+mm(o.saldo):'';
+   var dat=[o.contacto?esc2(o.contacto):"",o.w?"WhatsApp "+esc2(o.w):"",o.mail?esc2(o.mail):'<span class="fx">falta correo</span>'].filter(Boolean).join(" · ");
+   return '<div class="tj"><div class="ped-top"><div class="idn"><span class="av2">'+esc2(o.n.charAt(0))+'</span><div><div class="n" style="font-size:20px">'+esc2(o.n)+'</div><div class="meta">'+cta+'</div></div></div>'+chip+'</div>'
+    +'<div class="items">'+compra+deuda+'<br>'+dat+'</div><div class="acc"><button data-se="'+i+'">Editar</button><button data-sp="'+i+'">Ver pedidos</button></div></div>'}).join("")
+  :'<div class="tj vacio">Todavía no hay socios. Agrega el primero con «Agregar socio».</div>'};
+var fSocioB7=fSocio;
+fSocio=function(i){if(!ADMIN_REAL)return fSocioB7(i);if(!ADM){aviso("Todavía no cargan los socios",'<div class="cam">Espera un momento o toca Reintentar.</div>');return}
+ var o=i<0?null:SOCIOS[i];if(i>=0&&!o)return;fact=o?o.act:true;
+ var campos=[{id:"f-n",l:"Nombre del negocio",v:o?o.n:"",ph:"Como aparece en la nota"}];
+ if(!o)campos.push({id:"f-u",l:"Usuario",ph:"Sin espacios ni acentos",p:"Con este usuario entra a pedir. No se puede repetir ni cambiar después."});
+ campos.push({id:"f-c",l:"Contacto (opcional)",v:o?o.contacto:"",ph:"Quién hace los pedidos"},{id:"f-w",l:"WhatsApp (opcional)",v:o?o.w:"",ph:"52 + 10 dígitos",im:"numeric"},{id:"f-m",l:"Correo (opcional)",v:o?o.mail:"",ph:"Para enviarle su nota"});
+ form({t:o?"Editar socio":"Agregar socio",x:o?(o.u?"Usuario: "+o.u:o.inv?"Cuenta por crear: "+o.inv+"@socios.ego":"Sin cuenta para entrar"):"Entra en el primer escalón: "+(ESC[0]?ESC[0][1]:37.5)+"%.",
+  okT:o?"Guardar cambios":"Agregar socio",noC:"No, regresar",campos:campos,
+  post:o?'<div class="lab">Estado</div><div class="sw"><button class="chip'+(o.act?" on":"")+'" data-ac="1">Activo</button><button class="chip'+(o.act?"":" on")+'" data-ac="0">Pausado</button></div><div class="pista" style="margin-top:-6px">Pausado no puede entrar ni pedir. Conserva su historial, sus notas y su saldo.</div>'
+   :'<div class="pista">La cuenta para entrar se crea después en el panel de Supabase; al agregarlo, la app te dice cuál.</div>',
+  ok:function(){var n=$("f-n").value.trim().replace(/\s+/g," "),u=o?"":$("f-u").value.trim().toLowerCase(),c=$("f-c").value.trim().replace(/\s+/g," "),w=$("f-w").value.replace(/\D/g,""),ml=$("f-m").value.trim().toLowerCase();
+   if(w.length===10)w="52"+w;
+   if(n.length<2)return "Escribe el nombre del negocio.";if(n.length>80)return "El nombre lleva máximo 80 letras.";
+   if(SOCIOS.some(function(z){return z!==o&&z.n.toLowerCase()===n.toLowerCase()}))return "Ya hay un socio con ese nombre.";
+   if(!o){if(!/^[a-z0-9][a-z0-9._-]{2,29}$/.test(u))return "El usuario lleva de 3 a 30 letras o números, sin espacios ni acentos.";
+    if(SOCIOS.some(function(z){return z.inv===u||(z.usuarios||[]).some(function(x){return x.usuario===u})}))return "Ese usuario ya existe. Elige otro."}
+   if(c.length>80)return "El contacto lleva máximo 80 letras.";
+   if(w&&!/^52\d{10}$/.test(w))return "El WhatsApp lleva 52 y 10 dígitos.";
+   if(ml&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(ml))return "Revisa el correo.";
+   var C=[],cam=function(l,a,b){if(a!==b)C.push(l+": "+(a||"sin dato")+" → "+(b||"sin dato"))};
+   if(o){cam("Nombre",o.n,n);cam("Contacto",o.contacto,c);cam("WhatsApp",o.w,w);cam("Correo",o.mail,ml);if(!C.length&&fact===o.act)return "No cambiaste nada."}
+   var pa=o&&o.act&&!fact,re=o&&!o.act&&fact;
+   fmCfg.cq=!o?"¿Seguro que deseas agregar a este socio?":pa?"¿Seguro que deseas pausar a este socio?":re?"¿Seguro que deseas reactivar a este socio?":"¿Seguro que deseas guardar los cambios?";
+   fmCfg.okC=!o?"Sí, agregar socio":pa?"Sí, pausar socio":re?"Sí, reactivar socio":"Sí, guardar cambios";
+   fmCfg.cx=function(){return '<div class="cam"><b style="font-weight:500">'+esc2(n)+'</b>'+(!o?'<br>Usuario: '+esc2(u)+' · cuenta '+esc2(u)+'@socios.ego'+(c?'<br>Contacto: '+esc2(c):'')+(w?'<br>WhatsApp: '+esc2(w):'')+(ml?'<br>Correo: '+esc2(ml):'')
+     :(C.length?'<br>'+C.map(esc2).join("<br>"):'')+(pa?'<br>Ya no podrá entrar ni hacer pedidos. Conserva su historial, sus notas y su saldo.':re?'<br>Podrá volver a entrar y hacer pedidos.':''))+'</div>'};
+   return function(){guardarSocio(o,{n:n,u:u,c:c,w:w,m:ml,act:fact})}}})};
+async function guardarSocio(o,d){trabajando(o?"Guardando los cambios":"Agregando al socio");var r;
+ try{r=o?await sb.rpc("soc_guardar_socio",{p_id:o.id,p_nombre:d.n,p_contacto:d.c||null,p_whatsapp:d.w||null,p_correo:d.m||null,p_activo:d.act})
+  :await sb.rpc("soc_alta_socio",{p_nombre:d.n,p_usuario:d.u,p_contacto:d.c||null,p_whatsapp:d.w||null,p_correo:d.m||null})}catch(e){r={error:e}}
+ if(admFallo(r))return;
+ if(o)$("conf").classList.remove("on");
+ else{var x=r.data||{};aviso("Socio agregado",'<div class="cam"><b style="font-weight:500">'+esc2(x.nombre||d.n)+'</b> ya está en la lista. Falta crear su cuenta en el panel de Supabase:<br>Authentication → Users → Add user → Create new user<br>Correo: <b style="font-weight:500">'+esc2(x.cuenta||d.u+"@socios.ego")+'</b><br>Contraseña: la que le vas a dar<br>Marca «Auto Confirm User»<br>En cuanto la crees, entra con el usuario <b style="font-weight:500">'+esc2(x.usuario||d.u)+'</b>.</div>')}
+ cargarAdmin()}
+/* Pedidos del socio en el mes, a precio de socio con su escalón provisional. */
+var vPedSocioB7=vPedSocio;
+vPedSocio=function(i){if(!ADMIN_REAL)return vPedSocioB7(i);var o=SOCIOS[i];if(!o)return;
+ var h=ahoraCun().f,a=new Date(h.getFullYear(),h.getMonth(),1),b=new Date(h.getFullYear(),h.getMonth()+1,0),ai=iso(a),bi=iso(b),d=+(o.mes&&o.mes.descuento)||0;
+ form({t:"Pedidos de "+o.n,x:mesTit(ai)+" · a precio de socio ("+d+"%, provisional)",html:'<div class="vacio" role="status">Cargando los pedidos…</div>'});var cfg=fmCfg;
+ var malo=function(){if(fmCfg===cfg)$("fm-c").innerHTML='<div class="vacio" role="alert">No se pudieron cargar los pedidos. Revisa tu internet e intenta de nuevo.</div>'};
+ sb.from("soc_pedidos").select("id,folio,fecha_base,estado,soc_pedido_lineas(cantidad,precio_publico,salida)").eq("socio_id",o.id).neq("estado","cancelado")
+  .gte("fecha_base",iso(diaMas(a,-1))).lte("fecha_base",bi).order("fecha_base",{ascending:false}).then(function(r){if(fmCfg!==cfg)return;if(r.error){malo();return}
+  var g=0,EST={nuevo:"Recibido",para_hornear:"En producción",listo:"Listo"};
+  var L=(r.data||[]).map(function(p){var pz=0,t=0,sa="";(p.soc_pedido_lineas||[]).forEach(function(l){if(l.salida<ai||l.salida>bi||!(l.cantidad>0))return;
+    pz+=l.cantidad;t+=l.cantidad*Math.round(+l.precio_publico*(1000-Math.round(d*10))/1000);if(!sa||l.salida<sa)sa=l.salida});g+=t;return{p:p,pz:pz,t:t,sa:sa}}).filter(function(x){return x.pz>0});
+  $("fm-c").innerHTML='<div class="gasto" style="text-align:left"><div class="v">'+m(g)+'</div><div class="l">'+L.length+(L.length===1?" pedido":" pedidos")+' con salida en '+mesSolo(ai)+'</div></div>'
+   +(L.length?'<div class="tj" style="text-align:left;box-shadow:none;background:var(--campo)">'+L.map(function(x){return '<div class="fila"><div><div class="n">'+esc2(x.p.folio)+' · sale '+diaCorto(deISO(x.sa))+'</div><div class="m">'+x.pz+(x.pz===1?" pieza":" piezas")+' · '+(EST[x.p.estado]||esc2(x.p.estado))+'</div></div><div class="n" style="font-variant-numeric:tabular-nums">'+m(x.t)+'</div></div>'}).join("")+'</div>'
+    :'<div class="vacio">Todavía no tiene pedidos este mes.</div>')},malo)};
+
+/* Catálogo: todos los productos, también los apagados; el lugar es dentro de su tipo (salados primero). */
+function lugarDe(p,t){var L=PRODS.filter(function(x){return x.tipo===t}),k=p?L.indexOf(p):-1;return k>=0?k+1:L.length+1}
+function pProdsReal(){var a=$("a-prod"),t=$("pr-t");
+ if(ADM_ERR==="cargando"&&!ADM){t.textContent="Productos";a.innerHTML='<div class="vacio" role="status">Cargando el catálogo…</div>';return}
+ if(ADM_ERR&&ADM_ERR!=="cargando"){t.textContent="Productos";a.innerHTML=errAdm("el catálogo");return}
+ if(!PRODS.length){t.textContent="0 productos";a.innerHTML='<div class="vacio">Todavía no hay productos. Agrega el primero con «Agregar producto».</div>';return}
+ var ap=PRODS.filter(function(p){return !p.activo}).length,h="",tp="";
+ PRODS.forEach(function(p,i){if(p.tipo!==tp){tp=p.tipo;h+='<div class="prg">'+(tp==="salado"?"Pan salado":"Pan dulce")+' · '+PRODS.filter(function(x){return x.tipo===tp}).length+'</div>'}
+  h+='<div class="fila'+(p.activo?'':' apag')+'"><div style="display:flex;align-items:center;min-width:0"><span class="mth" style="'+(p.foto?'background-image:url('+fotoUrl(p.foto)+')':'')+'"></span><div><div class="n">'+esc2(p.nombre)+'</div><div class="m">Lugar '+lugarDe(p,p.tipo)+(p.foto?'':' · sin foto')+(p.activo?'':' · apagado')+'</div></div></div>'
+   +'<div style="display:flex;align-items:center;gap:10px"><span class="n" style="font-variant-numeric:tabular-nums">$'+(+p.precio)+'</span><button class="mini" data-pe="'+i+'">Editar</button></div></div>'});
+ a.innerHTML='<p class="sub" style="margin:0 0 4px">Precio al público; el socio paga según su escalón.</p>'+h;t.textContent=PRODS.length+" productos"+(ap?" · "+ap+(ap===1?" apagado":" apagados"):"")}
+var fProdB7=fProd;
+fProd=function(i){if(!ADMIN_REAL)return fProdB7(i);if(!ADM){aviso("Todavía no carga el catálogo",'<div class="cam">Espera un momento o toca Reintentar.</div>');return}
+ var p=i<0?null:PRODS[i];if(i>=0&&!p)return;
+ var tn=function(){return fcat==="s"?"salado":"dulce"},defL=function(){return lugarDe(p,tn())},cuantos=function(){return PRODS.filter(function(x){return x.tipo===tn()&&x!==p}).length+1};
+ fcat=p&&p.tipo==="salado"?"s":"d";fact=p?!!p.activo:true;ffoto=p&&p.foto?fotoUrl(p.foto):"";var foto0=ffoto;
+ form({t:p?"Editar producto":"Agregar producto",x:p?p.nombre:"Aparece en el catálogo de todos los socios.",okT:p?"Guardar cambios":"Agregar producto",
+  cq:p?"¿Seguro que deseas guardar los cambios?":"¿Seguro que deseas agregar este producto?",okC:p?"Sí, guardar cambios":"Sí, agregar producto",noC:"No, regresar",
+  campos:[{id:"f-n",l:"Nombre",v:p?p.nombre:"",ph:"Como lo ve el socio"},{id:"f-pr",l:"Precio al público ($)",v:p?String(+p.precio):"",ph:"Pesos enteros",im:"numeric"},{id:"f-lu",l:"Lugar en el catálogo",v:String(defL()),im:"numeric"}],
+  html:'<div class="lab">Foto del pan</div><div class="fotoP"><label for="f-foto" id="f-fl" class="'+(ffoto?"con":"")+'" style="'+(ffoto?"background-image:url("+ffoto+")":"")+'">Subir foto</label><input type="file" id="f-foto" accept="image/*" style="position:absolute;left:-9999px"><div id="f-fx">'+(ffoto?"Toca la foto para cambiarla.":"Así la ve el socio en el catálogo. Se comprime sola al subirla.")+'</div></div>'
+   +'<div class="lab">Tipo de pan</div><div class="sw"><button class="chip'+(fcat==="s"?" on":"")+'" data-fc="s">Pan salado</button><button class="chip'+(fcat==="d"?" on":"")+'" data-fc="d">Pan dulce</button></div>',
+  post:'<div class="pista" id="f-lup" style="margin-top:-6px"></div>'+(p?'<div class="lab">En el catálogo</div><div class="sw"><button class="chip'+(fact?" on":"")+'" data-ac="1">Se ofrece</button><button class="chip'+(fact?"":" on")+'" data-ac="0">Apagado</button></div><div class="pista" style="margin-top:-6px">Apagado deja de aparecer en el catálogo de los socios. No se borra: sus pedidos y notas se conservan.</div>':'')
+   +'<div class="pista" id="f-pre"></div><div class="pista">El cambio de precio aplica a pedidos nuevos. Los pedidos ya hechos no se mueven.</div>',
+  live:function(){var pr=parseInt($("f-pr").value.replace(/[\s$,]/g,""),10),a=ESC[0],z=ESC[ESC.length-1],ps=function(e){return Math.round(pr*(1000-Math.round(e[1]*10))/1000)};
+   $("f-pre").textContent=pr>0&&a?"El socio paga de $"+ps(a)+" ("+a[1]+"%) a $"+ps(z)+" ("+z[1]+"%).":"Escribe el precio para ver cuánto paga el socio.";
+   $("f-lup").textContent="1 es el primero del pan "+tn()+"; el último es el "+cuantos()+"."},
+  lugar:function(){$("f-lu").value=defL();fmCfg.live()},
+  ok:function(){var n=$("f-n").value.trim().replace(/\s+/g," "),pt=$("f-pr").value.replace(/[\s$,]/g,""),lt=$("f-lu").value.trim(),t=tn(),pr=+pt,lu=+lt;
+   if(n.length<2)return "Escribe el nombre del producto.";if(n.length>60)return "El nombre lleva máximo 60 letras.";
+   if(!/^\d+$/.test(pt)||pr<1)return "El precio va en pesos enteros, mayor a cero.";if(pr>9999)return "Revisa el precio: el máximo es $9,999.";
+   if(PRODS.some(function(z){return z!==p&&z.nombre.toLowerCase()===n.toLowerCase()}))return "Ya hay un producto con ese nombre.";
+   if(!/^\d+$/.test(lt)||lu<1)return "Escribe el lugar con un número: 1 es el primero.";
+   var ln=lu===defL()?null:Math.min(lu,cuantos()),fn=ffoto!==foto0?ffoto:null,C=[];
+   if(!p)C.push("Producto nuevo · pan "+t+" · $"+pr+(fn?" · con foto":" · sin foto"));
+   else{if(n!==p.nombre)C.push("Nombre: "+p.nombre+" → "+n);if(pr!==+p.precio)C.push("Precio: $"+(+p.precio)+" → $"+pr+". Los pedidos ya hechos conservan su precio.");
+    if(t!==p.tipo)C.push("Tipo: pan "+p.tipo+" → pan "+t);if(fn)C.push("Foto nueva");
+    if(fact!==!!p.activo)C.push(fact?"Vuelve al catálogo de los socios":"Se apaga: deja de aparecer en el catálogo de los socios")}
+   if(!p||ln!==null||t!==p.tipo)C.push("Lugar en el pan "+t+": "+(ln!==null?ln:defL()));
+   if(p&&!C.length)return "No cambiaste nada.";
+   fmCfg.cx=function(){return '<div class="cam"><b style="font-weight:500">'+esc2(n)+'</b><br>'+C.map(esc2).join("<br>")+'</div>'};
+   return function(){guardarProd(p,n,pr,t,fn,fact,ln)}}})};
+function slugDe(n){var x=String(n).normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,48).replace(/-+$/,"");return x||"pan"}
+async function hash8(bl){var a;try{a=new Uint8Array(await crypto.subtle.digest("SHA-256",await bl.arrayBuffer())).slice(0,4)}catch(e){a=new Uint8Array(4);crypto.getRandomValues(a)}
+ return Array.prototype.map.call(a,function(x){return("0"+x.toString(16)).slice(-2)}).join("")}
+/* La foto va con una ruta nueva (nombre y huella del archivo): la de antes no se pisa y nadie ve una foto vieja guardada. */
+async function subirFotoProd(n,u){var bl=await fotoBlob(u),ruta="productos/"+slugDe(n)+"-"+(await hash8(bl))+".jpg",
+ up=await sb.storage.from("soc-fotos").upload(ruta,bl,{contentType:"image/jpeg",upsert:false,cacheControl:"31536000"}),er=up&&up.error;
+ if(er&&!/already exists|duplicate/i.test(String(er.message||er.error||""))&&String(er.statusCode||er.status||"")!=="409")throw er;return ruta}
+async function guardarProd(p,n,pr,t,fn,ac,lu){trabajando(p?"Guardando el producto":"Agregando el producto");var ruta=p?p.foto:null,r;
+ if(fn){$("cf-x").innerHTML='<div class="cam" role="status">Subiendo la foto…</div>';try{ruta=await subirFotoProd(n,fn)}catch(e){admFallo({error:e},true);return}}
+ try{r=await sb.rpc("soc_guardar_producto",{p_id:p?p.id:null,p_nombre:n,p_precio:pr,p_tipo:t,p_foto:ruta,p_activo:ac,p_lugar:lu})}catch(e){r={error:e}}
+ if(admFallo(r))return;
+ $("conf").classList.remove("on");cargarCatalogo();cargarAdmin()}
+
+/* Escalones: solo el dueño. */
+var fEscB7=fEsc;
+fEsc=function(i){if(!ADMIN_REAL)return fEscB7(i);
+ if(rol!=="dueno"){aviso("Solo el dueño cambia los escalones",'<div class="cam">Los escalones cambian el descuento de todos los socios. Pide al dueño que lo haga.</div>');return}
+ var e=ESC[i];if(!e)return;fact=!!e[2];
+ form({t:"Editar escalón",x:"Escalón "+(i+1)+" de "+ESC.length,okT:"Guardar escalón",cq:"¿Seguro que deseas cambiar este escalón?",okC:"Sí, cambiar escalón",noC:"No, regresar",
+  campos:[{id:"f-de",l:"Compra desde ($)",v:e[0],im:"numeric",p:i===0?"El primer escalón siempre empieza en $1.":"Debe quedar entre el escalón anterior y el siguiente."},{id:"f-dc",l:"Descuento (%)",v:e[1],im:"decimal"}],
+  post:'<div class="lab">Entrega</div><div class="sw"><button class="chip'+(e[2]?" on":"")+'" data-ac="1">Entrega gratis</button><button class="chip'+(e[2]?"":" on")+'" data-ac="0">Retira</button></div><div class="pista" style="margin-top:-6px">Aplica al mes en curso y a los siguientes; las notas ya cerradas no cambian.</div>',
+  ok:function(){var dt=$("f-de").value.replace(/[\s$,]/g,""),ct=$("f-dc").value.replace(/[\s%]/g,"").replace(",","."),d=i===0?1:+dt,c=+ct;
+   if(i>0&&!/^\d+$/.test(dt))return "Escribe desde qué monto aplica, en pesos enteros.";
+   if(i>0&&d<=ESC[i-1][0])return "Debe ser mayor que el escalón anterior ("+m(ESC[i-1][0])+").";
+   if(ESC[i+1]&&d>=ESC[i+1][0])return "Debe ser menor que el escalón siguiente ("+m(ESC[i+1][0])+").";
+   if(!/^\d+(\.\d{1,2})?$/.test(ct)||!(c>0&&c<70))return "El descuento debe estar entre 0 y 70%, con máximo 2 decimales.";
+   if(i>0&&c<=ESC[i-1][1])return "El descuento debe ser mayor que el del escalón anterior ("+ESC[i-1][1]+"%).";
+   if(ESC[i+1]&&c>=ESC[i+1][1])return "El descuento debe ser menor que el del escalón siguiente ("+ESC[i+1][1]+"%).";
+   if(d===e[0]&&c===e[1]&&fact===!!e[2])return "No cambiaste nada.";
+   fmCfg.cx=function(){return '<div class="cam">Escalón '+(i+1)+(d!==e[0]?'<br>Desde: '+m(e[0])+' → '+m(d):'')+(c!==e[1]?'<br>Descuento: '+e[1]+'% → '+c+'%':'')
+    +(fact!==!!e[2]?'<br>Entrega: '+(e[2]?"gratis":"retira")+' → '+(fact?"gratis":"retira"):'')+'<br>Cambia el descuento del mes en curso para todos los socios.</div>'};
+   return function(){guardarEsc(e[0],d,c,fact)}}})};
+async function guardarEsc(d0,d,c,en){trabajando("Guardando el escalón");var r;
+ try{r=await sb.rpc("soc_guardar_escalon",{p_desde_antes:d0,p_desde:d,p_descuento:c,p_entrega:en})}catch(x){r={error:x}}
+ if(admFallo(r))return;$("conf").classList.remove("on");cargarCatalogo();cargarAdmin()}
+
+/* Ventas a precio de socio, por fecha de salida. */
+function chipVenta(id){var s=SOCIOS.filter(function(x){return x.id===id})[0];if(!s||!s.real)return "";if(!s.act)return '<span class="estado">Pausado</span>';
+ if(s.bloqueo)return '<span class="estado atr">Bloqueado</span>';var x=s.mes||{};return '<span class="estado'+(x.entrega?" ok":"")+'">Este mes: '+x.descuento+'%'+(x.entrega?' · entrega':'')+'</span>'}
+async function cargarVentas(r,k){var v=++venVuelta;VEN_K=k;VEN_ERR="cargando";
+ try{var x=await sb.rpc("soc_ventas",{p_desde:iso(r[0]),p_hasta:iso(r[1])});if(v!==venVuelta)return;if(x.error)throw x.error;VEN=x.data;VEN_ERR=""}
+ catch(e){if(v!==venVuelta)return;VEN_ERR=msgCarga(e)}
+ pPer()}
+var pPerB7=pPer;
+pPer=function(){if(!ADMIN_REAL)return pPerB7();var r=rgReal(aper,ARA,ARB),k=iso(r[0])+"|"+iso(r[1]);if(VEN_K!==k)cargarVentas(r,k);
+ var cab='<div class="per">'+PER.map(function(p){return '<button class="chip'+(aper===p[0]?" on":"")+'" data-ap="'+p[0]+'">'+p[1]+'</button>'}).join("")+'</div><div class="rango'+(aper==="otro"?" on":"")+'"><label>Desde<input type="date" id="ar-a" value="'+iso(r[0])+'"></label><label>Hasta<input type="date" id="ar-b" value="'+iso(r[1])+'"></label></div>';
+ var X=VEN&&VEN.desde===iso(r[0])&&VEN.hasta===iso(r[1])?VEN:null;
+ if(VEN_ERR&&VEN_ERR!=="cargando"){$("a-per").innerHTML=cab+'<div class="tj vacio" role="alert">No se pudo cargar la venta. '+esc2(VEN_ERR)+'<div class="acc" style="margin-top:14px"><button data-venr="1">Reintentar</button></div></div>';return}
+ if(!X){$("a-per").innerHTML=cab+'<div class="tj vacio" role="status">Cargando la venta…</div>';return}
+ var tv=+X.total||0,tp=+X.pedidos||0,tvp=+(X.anterior&&X.anterior.total)||0,dias=Math.round((r[1]-r[0])/864e5)+1,cmp="";
+ if(tv&&tvp){var dd=Math.round((tv-tvp)/tvp*100);cmp='<div class="cmp"><span class="dl">'+(dd>=0?"▲ ":"▼ ")+Math.abs(dd)+'%</span> '+(dd>=0?"más":"menos")+' que '+(dias===1?"el día anterior":"los "+dias+" días anteriores")+' ('+m(tvp)+')</div>'}
+ var L=X.socios||[],con=L.filter(function(o){return +o.venta>0}),sin=L.filter(function(o){return !(+o.venta>0)&&o.activo}),mx=con[0]?+con[0].venta:0;
+ var rk=con.map(function(o,n){var sh=tv?Math.round(o.venta/tv*100):0;
+   return '<div class="rk'+(n===0?" top":"")+'"><div class="rk1"><span class="rka">'+(n+1)+'</span><div class="rkn"><b>'+esc2(o.nombre)+'</b><span>'+o.pedidos+(o.pedidos==1?" pedido":" pedidos")+' · '+sh+'% de la venta</span></div><div class="rkv">'+m(o.venta)+'</div></div>'
+    +'<div class="rkb"><i style="width:'+(mx?Math.max(2,o.venta/mx*100):0)+'%;animation-delay:'+(n*140)+'ms"></i></div><div class="rkt">'+chipVenta(o.socio_id)+'</div></div>'}).join("")
+  +(sin.length?'<p class="sub" style="margin:14px 0 0">Sin compras en estas fechas: '+sin.map(function(o){return esc2(o.nombre)}).join(", ")+'.</p>':'');
+ $("a-per").innerHTML=cab+'<div class="vt"><div class="vt0"><div class="vtl">Venta a socios · '+del(r).toLowerCase()+'</div><div class="v">'+m(tv)+'</div>'+cmp+'</div>'
+  +'<div class="vt3"><div><b>'+tp+'</b><span>'+(tp===1?"pedido":"pedidos")+'</span></div><div><b>'+(tp?m(tv/tp):"$0")+'</b><span>promedio por pedido</span></div><div><b>'+con.length+' de '+L.length+'</b><span>socios compraron</span></div></div></div>'
+  +'<div class="dos"><div class="tj viz"><h4>Quién compra más</h4><p class="sub">'+del(r)+' · a precio de socio</p>'+(tv?rk:'<div class="vacio">No hubo pedidos en estas fechas.</div>')+'</div>'
+  +'<div class="tj viz"><h4>Venta por semana</h4><p class="sub">Todos los socios, últimas 6 semanas, a precio de socio. Toca una barra para ver el desglose.</p><div class="lin" id="g-lin"></div><div class="kp2" id="g-kp"></div><details class="tabla"><summary>Ver tabla</summary><div id="g-tab"></div></details></div></div>';
+ lineas()};
+var lineasB7=lineas;
+lineas=function(){if(!ADMIN_REAL)return lineasB7();var el=$("g-lin");if(!el||!VEN)return;var W=el.clientWidth;if(!W)return;
+ var S=VEN.semanas||[],n=S.length,H=236,ml=2,mr=2,mt=30,mb=30;if(!n){el.innerHTML="";$("g-kp").innerHTML="";$("g-tab").innerHTML="";return}
+ var A=S.map(function(w){return deISO(w.desde)}),T=S.map(function(w){return +w.total||0}),mx=Math.max.apply(null,T)*1.04||1,Y0=H-mb;
+ var bd=(W-ml-mr)/n,bw=Math.min(72,bd*.66),Y=function(v){return mt+(Y0-mt)*(1-v/mx)};
+ var com=T.slice(0,n-1),best=0;com.forEach(function(t,i){if(t>com[best])best=i});var prom=com.reduce(function(a,c){return a+c},0)/(com.length||1),hay=com.some(function(t){return t>0});
+ var fe=function(i){return A[i].getDate()+" "+MES[A[i].getMonth()].slice(0,3)},NOM={};
+ (ADM&&ADM.socios||[]).forEach(function(s){NOM[s.id]=s.nombre});(VEN.socios||[]).forEach(function(s){NOM[s.socio_id]=NOM[s.socio_id]||s.nombre});
+ var KP='<div><span>Mejor semana'+(hay?' · '+fe(best):'')+'</span><b>'+(hay?m(com[best]):'—')+'</b></div><div><span><i class="pl"></i>Promedio semanal</span><b>'+m(prom)+'</b></div><div><span>Esta semana, en curso</span><b>'+m(T[n-1])+'</b></div>';$("g-kp").innerHTML=KP;
+ var g='<svg height="'+H+'" role="img" aria-label="Venta semanal a precio de socio, últimas seis semanas"><defs><pattern id="ry" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" fill="#EFE6D2"/><rect width="3" height="7" fill="#C9C39E"/></pattern></defs>';
+ g+='<line x1="0" x2="'+W+'" y1="'+Y0+'" y2="'+Y0+'" stroke="var(--rej)" stroke-width="1"/>';
+ T.forEach(function(t,i){var cx=ml+bd*i+bd/2,x0=cx-bw/2,h=Math.max(2,Y0-Y(t)),y=Y0-h,rr=Math.min(12,bw/2,h),par=i===n-1,bs=hay&&i===best;
+  var d="M"+x0+" "+Y0+"V"+(y+rr)+"Q"+x0+" "+y+" "+(x0+rr)+" "+y+"H"+(x0+bw-rr)+"Q"+(x0+bw)+" "+y+" "+(x0+bw)+" "+(y+rr)+"V"+Y0+"z";
+  g+='<g class="col" data-i="'+i+'"><path class="cb" style="animation-delay:'+(i*90)+'ms" d="'+d+'" fill="'+(par?"url(#ry)":bs?"var(--oliva)":"#8A8F5C")+'"'+(par?' stroke="#8A8F5C" stroke-width="1.5" stroke-dasharray="4 4"':'')+'/>'
+   +'<text class="vl'+(bs?" bst":"")+'" x="'+cx+'" y="'+(y-9)+'" text-anchor="middle">$'+(t/1000).toFixed(1)+'k</text><text x="'+cx+'" y="'+(H-9)+'" text-anchor="middle">'+(par?"esta sem.":fe(i))+'</text><rect x="'+(ml+bd*i)+'" y="0" width="'+bd+'" height="'+H+'" fill="transparent"/></g>'});
+ if(hay)g+='<line class="pm" x1="0" x2="'+W+'" y1="'+Y(prom)+'" y2="'+Y(prom)+'"/>';
+ el.innerHTML=g+'</svg>';
+ var cols=el.querySelectorAll(".col"),sel=-1;
+ var ver=function(i){if(i===sel)return;sel=i;cols.forEach(function(c,j){c.classList.toggle("ap",i>=0&&j!==i)});if(i<0){$("g-kp").innerHTML=KP;return}
+  var w=S[i],L=Object.keys(w.socios||{}).map(function(k){return[NOM[k]||"Socio",+w.socios[k]]}).filter(function(x){return x[1]>0}).sort(function(a,b){return b[1]-a[1]});
+  $("g-kp").innerHTML='<div class="kh"><b>Semana del '+A[i].getDate()+" de "+MES[A[i].getMonth()]+(w.en_curso?", en curso":"")+'</b><span>'+m(T[i])+'</span></div>'
+   +(L.length?L.map(function(x){return '<div><span>'+esc2(x[0])+'</span><b>'+m(x[1])+'</b></div>'}).join(""):'<div><span>Sin compras esta semana</span><b>$0</b></div>')};
+ el.onpointermove=function(e){if(e.pointerType==="touch")return;var c=e.target.closest(".col");if(c)ver(+c.dataset.i)};
+ el.onclick=function(e){var c=e.target.closest(".col");if(!c){ver(-1);return}ver(+c.dataset.i)};
+ el.onpointerleave=function(e){if(e.pointerType!=="touch")ver(-1)};
+ $("g-tab").innerHTML='<table><tr><th>Semana del</th><th>Socios</th><th>Total</th></tr>'+S.map(function(w,i){var k=Object.keys(w.socios||{}).filter(function(x){return +w.socios[x]>0}).length;
+   return '<tr><td>'+A[i].getDate()+" "+MES[A[i].getMonth()].slice(0,3)+(w.en_curso?" *":"")+'</td><td>'+k+'</td><td>'+m(T[i])+'</td></tr>'}).join("")+'</table><p class="sub" style="margin:6px 0 0">* Semana en curso. A precio de socio, por fecha de salida.</p>'};
+
+/* Urgencias reales: oportunidad (a menos de $4,000 del siguiente escalón), socios activos sin correo y espacio de fotos. */
+function urgAdm(IT){if(!ADM)return;var act=SOCIOS.filter(function(o){return o.act});
+ var op=act.filter(function(o){var x=o.mes||{},sg=x.siguiente;return !o.bloqueo&&sg&&+x.pagado>0&&sg.faltan>0&&sg.faltan<4000}).sort(function(a,b){return a.mes.siguiente.faltan-b.mes.siguiente.faltan});
+ if(op.length===1){var o=op[0],sg=o.mes.siguiente;IT.push({n:3,t:o.n+" está a "+m(sg.faltan)+" de subir de escalón",d:"Avísale: con un pedido más grande pasa a "+sg.descuento+"%"+(sg.entrega&&!o.mes.entrega?" y recibe entrega gratis.":"."),b:"Ver socio",g:"socios"})}
+ else if(op.length)IT.push({n:3,t:op.length+" socios están a menos de $4,000 de subir de escalón",d:op.map(function(o){return o.n+": le faltan "+m(o.mes.siguiente.faltan)+" para "+o.mes.siguiente.descuento+"%"}).join("; ")+".",b:"Ver socios",g:"socios"});
+ var sc=act.filter(function(o){return !o.mail});
+ if(sc.length)IT.push({n:2,t:sc.length+(sc.length===1?" socio sin correo":" socios sin correo"),d:sc.map(function(o){return o.n}).join(", ")+": agrega su correo para poder enviarle su nota mensual.",b:"Completar",g:"socios"});
+ var us=(+ADM.fotos||0)+(+ADM.comprobantes||0);
+ if(rol==="dueno"&&us/FOTOS_LIM>.55)IT.push({n:2,t:"Las fotos ya ocupan "+Math.round(us/FOTOS_LIM*100)+"% del espacio",d:"Descarga el respaldo y limpia el historial antes de que la app se ponga lenta.",b:"Mantenimiento",g:"mant"})}
+
+var pAdminB7=pAdmin;pAdmin=function(){pAdminB7();if(ADMIN_REAL)pProdsReal()};
+(function(){var a=abrirSesion;abrirSesion=function(pf,dest,anim){admLimpiar();var eq=EQUIPO_ADM.indexOf(pf.nivel)>=0;if(eq)admEmpezar();var r=a(pf,dest,anim);if(eq)cargarAdmin();return r}})();
+var salirB7=salir;salir=function(){admLimpiar();return salirB7()};
+var atabB7=atab;atab=function(t){atabB7(t);if(ADMIN_REAL&&/^(resumen|socios|productos)$/.test(t)&&ADM_ERR!=="cargando"&&Date.now()-ADM_T>60000)cargarAdmin()};
+document.addEventListener("visibilitychange",function(){if(!document.hidden&&ADMIN_REAL&&ADM_ERR!=="cargando"&&Date.now()-ADM_T>60000)cargarAdmin()});
+document.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;
+ if(b.dataset.admr)cargarAdmin();
+ else if(b.dataset.venr){VEN_K="";pPer()}
+ else if(b.dataset.fc&&fmCfg&&fmCfg.lugar&&$("fm").classList.contains("on"))fmCfg.lugar()});
 </script>
 </body>
 </html>
